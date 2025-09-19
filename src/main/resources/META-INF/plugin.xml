@@ -1,15 +1,44 @@
-<!-- Plugin Configuration File. Read more: https://plugins.jetbrains.com/docs/intellij/plugin-configuration-file.html -->
 <idea-plugin>
-    <id>com.github.linpeilie.switchenvironments</id>
-    <name>switch-environments</name>
-    <vendor>linpeilie</vendor>
+    <id>com.example.envmanager</id>
+    <name>Environment Variables Manager</name>
+    <version>1.0.0</version>
+    <vendor email="support@example.com" url="http://www.example.com">Example</vendor>
+
+    <description><![CDATA[
+    A powerful environment variables management plugin for IntelliJ IDEA.
+    Features:
+    - Create, edit, and delete environment variables
+    - Import environment variables from .env files
+    - Group management with activation/deactivation
+    - Beautiful and intuitive UI
+    ]]></description>
+
+    <idea-version since-build="203"/>
 
     <depends>com.intellij.modules.platform</depends>
 
-    <resource-bundle>messages.MyBundle</resource-bundle>
-
     <extensions defaultExtensionNs="com.intellij">
-        <toolWindow factoryClass="com.github.linpeilie.switchenvironments.toolWindow.MyToolWindowFactory" id="MyToolWindow"/>
-        <postStartupActivity implementation="com.github.linpeilie.switchenvironments.startup.MyProjectActivity" />
+        <!-- TODO: 图标-->
+<!--        <toolWindow id="Environment Variables" secondary="true" icon="/icons/env_icon.png"-->
+<!--                    anchor="right" factoryClass="com.example.envmanager.ui.EnvManagerToolWindowFactory"/>-->
+        <toolWindow id="Environment Variables" secondary="true"
+                    anchor="right" factoryClass="com.github.linpeilie.switchenvironments.ui.EnvManagerToolWindowFactory"/>
+
+        <applicationService serviceImplementation="com.github.linpeilie.switchenvironments.service.EnvManagerService"/>
+        <applicationService serviceImplementation="com.github.linpeilie.switchenvironments.service.EnvGroupService"/>
+
+        <applicationConfigurable parentId="tools" instance="com.github.linpeilie.switchenvironments.settings.EnvManagerConfigurable"
+                                 id="com.github.linpeilie.switchenvironments.settings.EnvManagerConfigurable"
+                                 displayName="Environment Variables Manager"/>
     </extensions>
+
+    <actions>
+        <group id="EnvManagerGroup" text="Environment Variables" description="Environment Variables Management">
+            <add-to-group group-id="ToolsMenu" anchor="last"/>
+            <action id="com.github.linpeilie.switchenvironments.action.OpenEnvManagerAction"
+                    class="com.github.linpeilie.switchenvironments.action.OpenEnvManagerAction"
+                    text="Open Environment Manager"
+                    description="Open Environment Variables Manager"/>
+        </group>
+    </actions>
 </idea-plugin>
