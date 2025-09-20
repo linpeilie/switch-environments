@@ -106,6 +106,7 @@ public class EnvManagerToolWindow {
         JBScrollPane scrollPane = new JBScrollPane(groupList);
         scrollPane.setBorder(JBUI.Borders.empty());
         scrollPane.setBackground(UIUtil.getListBackground());
+        scrollPane.setViewportBorder(JBUI.Borders.empty(5));
         panel.add(scrollPane, BorderLayout.CENTER);
 
         ActionToolbar toolbar = createGroupToolbar();
@@ -157,24 +158,30 @@ public class EnvManagerToolWindow {
             @Override
             public void mouseClicked(MouseEvent e) {
                 int index = groupList.locationToIndex(e.getPoint());
-                if (index >= 0) {
-                    EnvGroup group = listModel.getElementAt(index);
+                if (index < 0) {
+                    return;
+                }
 
-                    // 获取单元格边界
-                    Rectangle cellBounds = groupList.getCellBounds(index, index);
+                EnvGroup group = listModel.getElementAt(index);
 
-                    // 计算复选框的位置（假设在单元格右侧）
-                    int checkboxSize = 20; // 复选框的估计大小
-                    int checkboxX = cellBounds.x + cellBounds.width - checkboxSize - 5; // 5像素边距
-                    int checkboxY = cellBounds.y + (cellBounds.height - checkboxSize) / 2;
-                    Rectangle checkboxBounds = new Rectangle(checkboxX, checkboxY, checkboxSize, checkboxSize);
+                // 获取单元格边界
+                Rectangle cellBounds = groupList.getCellBounds(index, index);
 
-                    // 检查点击是否在复选框区域内
-                    if (checkboxBounds.contains(e.getPoint()) && !"all_variables".equals(group.getId())) {
-                        toggleGroupActivation(group);
-                        // 重新绘制列表项以反映状态变化
-                        groupList.repaint(cellBounds);
-                    }
+                if (!cellBounds.contains(e.getPoint())) {
+                    return;
+                }
+
+                // 计算复选框的位置（假设在单元格右侧）
+                int checkboxSize = 20; // 复选框的估计大小
+                int checkboxX = cellBounds.x + cellBounds.width - checkboxSize - 5; // 5像素边距
+                int checkboxY = cellBounds.y + (cellBounds.height - checkboxSize) / 2;
+                Rectangle checkboxBounds = new Rectangle(checkboxX, checkboxY, checkboxSize, checkboxSize);
+
+                // 检查点击是否在复选框区域内
+                if (checkboxBounds.contains(e.getPoint()) && !"all_variables".equals(group.getId())) {
+                    toggleGroupActivation(group);
+                    // 重新绘制列表项以反映状态变化
+                    groupList.repaint(cellBounds);
                 }
             }
         });
@@ -206,11 +213,12 @@ public class EnvManagerToolWindow {
         actionGroup.add(createAction("Add Group", "Create a new environment group", AllIcons.General.Add,
             this::showAddGroupDialog));
 
-        actionGroup.add(createAction("Edit Group", "Edit the selected group", AllIcons.Actions.Edit, this::editSelectedGroup,
-            () -> {
-                EnvGroup selected = groupList.getSelectedValue();
-                return selected != null && !"all_variables".equals(selected.getId());
-            }));
+        actionGroup.add(
+            createAction("Edit Group", "Edit the selected group", AllIcons.Actions.Edit, this::editSelectedGroup,
+                () -> {
+                    EnvGroup selected = groupList.getSelectedValue();
+                    return selected != null && !"all_variables".equals(selected.getId());
+                }));
 
         actionGroup.add(createAction("Delete Group", "Delete the selected group", AllIcons.General.Remove,
             this::deleteSelectedGroup, () -> {
@@ -249,13 +257,15 @@ public class EnvManagerToolWindow {
 
         actionGroup.addSeparator();
 
-        actionGroup.add(createAction("Import File", "Import variables from file", AllIcons.Actions.Download, this::importFile,
-            () -> {
-                EnvGroup selected = groupList.getSelectedValue();
-                return selected != null && !"all_variables".equals(selected.getId());
-            }));
+        actionGroup.add(
+            createAction("Import File", "Import variables from file", AllIcons.Actions.Download, this::importFile,
+                () -> {
+                    EnvGroup selected = groupList.getSelectedValue();
+                    return selected != null && !"all_variables".equals(selected.getId());
+                }));
 
-        ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar("EnvVariableToolbar", actionGroup, true);
+        ActionToolbar toolbar =
+            ActionManager.getInstance().createActionToolbar("EnvVariableToolbar", actionGroup, true);
         toolbar.setTargetComponent(variableTable);
         return toolbar;
     }
@@ -319,7 +329,7 @@ public class EnvManagerToolWindow {
         }
 
         for (EnvVariable var : variables) {
-            tableModel.addRow(new Object[]{var.getName(), var.getValue()});
+            tableModel.addRow(new Object[] {var.getName(), var.getValue()});
         }
     }
 
@@ -482,21 +492,6 @@ public class EnvManagerToolWindow {
             checkBox.setOpaque(false);
             checkBox.setFocusable(false);
             checkBox.setName("groupCheckBox");
-
-            checkBox.addMouseListener(new MouseAdapter() {
-                @Override
-                public void mouseClicked(MouseEvent e) {
-                    // 阻止事件冒泡，避免被列表处理
-                    e.consume();
-
-                    EnvGroup group = (EnvGroup) checkBox.getClientProperty("envGroup");
-                    if (group != null && !"all_variables".equals(group.getId())) {
-                        parent.toggleGroupActivation(group);
-
-                        checkBox.setSelected(group.isActive());
-                    }
-                }
-            });
 
             add(nameLabel, BorderLayout.CENTER);
             add(checkBox, BorderLayout.EAST);
