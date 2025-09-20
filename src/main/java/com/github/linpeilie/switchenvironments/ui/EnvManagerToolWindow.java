@@ -5,54 +5,31 @@ import com.github.linpeilie.switchenvironments.model.EnvVariable;
 import com.github.linpeilie.switchenvironments.service.EnvGroupService;
 import com.github.linpeilie.switchenvironments.service.EnvManagerService;
 import com.intellij.icons.AllIcons;
-import com.intellij.openapi.actionSystem.ActionManager;
-import com.intellij.openapi.actionSystem.ActionToolbar;
-import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.DefaultActionGroup;
+import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.fileChooser.FileChooser;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.ui.ColoredListCellRenderer;
-import com.intellij.ui.SimpleTextAttributes;
-import com.intellij.ui.components.JBLabel;
-import com.intellij.ui.components.JBList;
-import com.intellij.ui.components.JBPanel;
-import com.intellij.ui.components.JBScrollPane;
-import com.intellij.ui.components.OnOffButton;
+import com.intellij.ui.components.*;
 import com.intellij.ui.table.JBTable;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Dimension;
-import java.awt.Font;
-import java.awt.Rectangle;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.io.File;
-import java.io.IOException;
-import java.util.List;
-import javax.swing.BorderFactory;
-import javax.swing.DefaultListModel;
-import javax.swing.Icon;
-import javax.swing.JComponent;
-import javax.swing.JLabel;
-import javax.swing.JList;
-import javax.swing.JPanel;
-import javax.swing.JTable;
-import javax.swing.ListCellRenderer;
-import javax.swing.ListSelectionModel;
-import javax.swing.SwingUtilities;
+import org.jetbrains.annotations.NotNull;
+
+import javax.swing.*;
 import javax.swing.border.Border;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
-import org.jetbrains.annotations.NotNull;
+import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.io.File;
+import java.io.IOException;
+import java.util.List;
+import java.util.function.Supplier;
 
 public class EnvManagerToolWindow {
     private final JBPanel mainPanel;
@@ -72,15 +49,15 @@ public class EnvManagerToolWindow {
         mainPanel = new JBPanel<>(new BorderLayout());
         mainPanel.setBackground(UIUtil.getPanelBackground());
 
-        // Create list for groups with better styling
+        // Create list for groups
         listModel = new DefaultListModel<>();
         groupList = new JBList<>(listModel);
         groupList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        groupList.setCellRenderer(new GroupListCellRenderer());
+        groupList.setCellRenderer(new GroupListCellRenderer(this));
         groupList.setBackground(UIUtil.getListBackground());
         groupList.setBorder(JBUI.Borders.empty());
 
-        // Create table for variables with modern styling
+        // Create table for variables
         String[] columnNames = {"Name", "Value"};
         tableModel = new DefaultTableModel(columnNames, 0) {
             @Override
@@ -104,7 +81,6 @@ public class EnvManagerToolWindow {
 
         splitter = new Splitter(false, 0.25f);
         splitter.setShowDividerControls(true);
-        splitter.setShowDividerIcon(false);
         splitter.setDividerWidth(1);
 
         setupUI();
@@ -113,13 +89,9 @@ public class EnvManagerToolWindow {
     }
 
     private void setupUI() {
-        // Left panel with groups
         JBPanel leftPanel = createGroupPanel();
-
-        // Right panel with variables
         JBPanel rightPanel = createVariablePanel();
 
-        // Configure splitter
         splitter.setFirstComponent(leftPanel);
         splitter.setSecondComponent(rightPanel);
 
@@ -131,17 +103,13 @@ public class EnvManagerToolWindow {
         panel.setBackground(UIUtil.getPanelBackground());
         panel.setBorder(createTitledBorder("Groups"));
 
-        // Scroll pane for group list
         JBScrollPane scrollPane = new JBScrollPane(groupList);
         scrollPane.setBorder(JBUI.Borders.empty());
         scrollPane.setBackground(UIUtil.getListBackground());
         panel.add(scrollPane, BorderLayout.CENTER);
 
-        // Toolbar for group actions
         ActionToolbar toolbar = createGroupToolbar();
-        JComponent toolbarComponent = toolbar.getComponent();
-        //        toolbarComponent.setBorder(JBUI.Borders.customLine(UIUtil.getBoundsColor(), 1, 0, 0, 0));
-        panel.add(toolbarComponent, BorderLayout.SOUTH);
+        panel.add(toolbar.getComponent(), BorderLayout.SOUTH);
 
         return panel;
     }
@@ -150,7 +118,6 @@ public class EnvManagerToolWindow {
         JBPanel panel = new JBPanel<>(new BorderLayout());
         panel.setBackground(UIUtil.getPanelBackground());
 
-        // Header with dynamic title
         JBPanel headerPanel = new JBPanel<>(new BorderLayout());
         headerPanel.setBackground(UIUtil.getPanelBackground());
         headerPanel.setBorder(JBUI.Borders.empty(8, 12));
@@ -158,30 +125,21 @@ public class EnvManagerToolWindow {
         headerPanel.add(variableHeaderLabel, BorderLayout.WEST);
         panel.add(headerPanel, BorderLayout.NORTH);
 
-        // Table in scroll pane
         JBScrollPane scrollPane = new JBScrollPane(variableTable);
         scrollPane.setBorder(createTitledBorder(""));
-        scrollPane.setBackground(UIUtil.getTableBackground());
         panel.add(scrollPane, BorderLayout.CENTER);
 
-        // Toolbar for variable actions
         ActionToolbar toolbar = createVariableToolbar();
-        JComponent toolbarComponent = toolbar.getComponent();
-        //        toolbarComponent.setBorder(JBUI.Borders.customLine(UIUtil.getBorderColor(), 1, 0, 0, 0));
-        panel.add(toolbarComponent, BorderLayout.SOUTH);
+        panel.add(toolbar.getComponent(), BorderLayout.SOUTH);
 
         return panel;
     }
 
     private Border createTitledBorder(String title) {
-        if (title.isEmpty()) {
-            return JBUI.Borders.customLine(UIUtil.getWindowColor(), 1, 1, 1, 1);
-        }
         return JBUI.Borders.customLine(UIUtil.getWindowColor(), 1, 1, 1, 1);
     }
 
     private void setupActions() {
-        // List selection listener
         groupList.addListSelectionListener(new ListSelectionListener() {
             @Override
             public void valueChanged(ListSelectionEvent e) {
@@ -194,28 +152,34 @@ public class EnvManagerToolWindow {
             }
         });
 
-        // Mouse listener for toggle functionality
+        // 添加鼠标监听器来处理复选框点击
         groupList.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
                 int index = groupList.locationToIndex(e.getPoint());
                 if (index >= 0) {
-                    Rectangle cellBounds = groupList.getCellBounds(index, index);
                     EnvGroup group = listModel.getElementAt(index);
 
-                    if (group != null && !"all_variables".equals(group.getId())) {
-                        // Check if click was in the toggle area (right 60 pixels)
-                        int toggleAreaWidth = JBUI.scale(60);
-                        int width = cellBounds.x + cellBounds.width - toggleAreaWidth;
-                        if (e.getX() >= width && e.getX() <= cellBounds.width) {
-                            toggleGroupActivation(group);
-                        }
+                    // 获取单元格边界
+                    Rectangle cellBounds = groupList.getCellBounds(index, index);
+
+                    // 计算复选框的位置（假设在单元格右侧）
+                    int checkboxSize = 20; // 复选框的估计大小
+                    int checkboxX = cellBounds.x + cellBounds.width - checkboxSize - 5; // 5像素边距
+                    int checkboxY = cellBounds.y + (cellBounds.height - checkboxSize) / 2;
+                    Rectangle checkboxBounds = new Rectangle(checkboxX, checkboxY, checkboxSize, checkboxSize);
+
+                    // 检查点击是否在复选框区域内
+                    if (checkboxBounds.contains(e.getPoint()) && !"all_variables".equals(group.getId())) {
+                        toggleGroupActivation(group);
+                        // 重新绘制列表项以反映状态变化
+                        groupList.repaint(cellBounds);
                     }
                 }
             }
         });
 
-        // Double-click to edit variable
+        // 双击编辑变量
         variableTable.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -226,7 +190,7 @@ public class EnvManagerToolWindow {
         });
     }
 
-    private void toggleGroupActivation(EnvGroup group) {
+    public void toggleGroupActivation(EnvGroup group) {
         boolean newState = !group.isActive();
         groupService.setGroupActive(group.getId(), newState);
 
@@ -242,12 +206,11 @@ public class EnvManagerToolWindow {
         actionGroup.add(createAction("Add Group", "Create a new environment group", AllIcons.General.Add,
             this::showAddGroupDialog));
 
-        actionGroup.add(
-            createAction("Edit Group", "Edit the selected group", AllIcons.Actions.Edit, this::editSelectedGroup,
-                () -> {
-                    EnvGroup selected = groupList.getSelectedValue();
-                    return selected != null && !"all_variables".equals(selected.getId());
-                }));
+        actionGroup.add(createAction("Edit Group", "Edit the selected group", AllIcons.Actions.Edit, this::editSelectedGroup,
+            () -> {
+                EnvGroup selected = groupList.getSelectedValue();
+                return selected != null && !"all_variables".equals(selected.getId());
+            }));
 
         actionGroup.add(createAction("Delete Group", "Delete the selected group", AllIcons.General.Remove,
             this::deleteSelectedGroup, () -> {
@@ -264,12 +227,11 @@ public class EnvManagerToolWindow {
     private ActionToolbar createVariableToolbar() {
         DefaultActionGroup actionGroup = new DefaultActionGroup();
 
-        actionGroup.add(
-            createAction("Add Variable", "Add a new environment variable", AllIcons.General.Add, this::addNewVariable,
-                () -> {
-                    EnvGroup selected = groupList.getSelectedValue();
-                    return selected != null && !"all_variables".equals(selected.getId());
-                }));
+        actionGroup.add(createAction("Add Variable", "Add a new environment variable", AllIcons.General.Add,
+            this::addNewVariable, () -> {
+                EnvGroup selected = groupList.getSelectedValue();
+                return selected != null && !"all_variables".equals(selected.getId());
+            }));
 
         actionGroup.add(createAction("Edit Variable", "Edit the selected variable", AllIcons.Actions.Edit,
             this::editSelectedVariable, () -> {
@@ -287,15 +249,13 @@ public class EnvManagerToolWindow {
 
         actionGroup.addSeparator();
 
-        actionGroup.add(
-            createAction("Import File", "Import variables from file", AllIcons.Actions.Download, this::importFile,
-                () -> {
-                    EnvGroup selected = groupList.getSelectedValue();
-                    return selected != null && !"all_variables".equals(selected.getId());
-                }));
+        actionGroup.add(createAction("Import File", "Import variables from file", AllIcons.Actions.Download, this::importFile,
+            () -> {
+                EnvGroup selected = groupList.getSelectedValue();
+                return selected != null && !"all_variables".equals(selected.getId());
+            }));
 
-        ActionToolbar toolbar =
-            ActionManager.getInstance().createActionToolbar("EnvVariableToolbar", actionGroup, true);
+        ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar("EnvVariableToolbar", actionGroup, true);
         toolbar.setTargetComponent(variableTable);
         return toolbar;
     }
@@ -304,11 +264,8 @@ public class EnvManagerToolWindow {
         return createAction(text, description, icon, action, null);
     }
 
-    private AnAction createAction(String text,
-        String description,
-        Icon icon,
-        Runnable action,
-        java.util.function.Supplier<Boolean> enabledSupplier) {
+    private AnAction createAction(String text, String description, Icon icon, Runnable action,
+        Supplier<Boolean> enabledSupplier) {
         return new AnAction(text, description, icon) {
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
@@ -340,7 +297,6 @@ public class EnvManagerToolWindow {
             listModel.addElement(group);
         }
 
-        // Restore selection
         if (selectedGroup != null) {
             for (int i = 0; i < listModel.size(); i++) {
                 if (listModel.getElementAt(i).getId().equals(selectedGroup.getId())) {
@@ -363,8 +319,7 @@ public class EnvManagerToolWindow {
         }
 
         for (EnvVariable var : variables) {
-            Object[] rowData = {var.getName(), var.getValue()};
-            tableModel.addRow(rowData);
+            tableModel.addRow(new Object[]{var.getName(), var.getValue()});
         }
     }
 
@@ -396,7 +351,6 @@ public class EnvManagerToolWindow {
         EnvGroup selectedGroup = groupList.getSelectedValue();
         if (selectedGroup != null && !"imported".equals(selectedGroup.getId()) &&
             !"all_variables".equals(selectedGroup.getId())) {
-
             int result = Messages.showYesNoDialog(mainPanel,
                 "Are you sure you want to delete the group '" + selectedGroup.getName() + "'?", "Delete Group",
                 Messages.getQuestionIcon());
@@ -438,9 +392,9 @@ public class EnvManagerToolWindow {
 
         if (selectedRow >= 0 && selectedGroup != null && !"all_variables".equals(selectedGroup.getId())) {
             String varName = (String) tableModel.getValueAt(selectedRow, 0);
-            int result =
-                Messages.showYesNoDialog(mainPanel, "Are you sure you want to delete the variable '" + varName + "'?",
-                    "Delete Variable", Messages.getQuestionIcon());
+            int result = Messages.showYesNoDialog(mainPanel,
+                "Are you sure you want to delete the variable '" + varName + "'?", "Delete Variable",
+                Messages.getQuestionIcon());
             if (result == Messages.YES) {
                 EnvVariable variable = envService.getVariablesByGroup(selectedGroup.getId())
                     .stream()
@@ -511,39 +465,57 @@ public class EnvManagerToolWindow {
     public JComponent getContent() {
         return mainPanel;
     }
-    // Modern list cell renderer for groups
+
     private static class GroupListCellRenderer extends JPanel implements ListCellRenderer<EnvGroup> {
-
         private final JBLabel nameLabel = new JBLabel();
-        private final OnOffButton onOffButton = new OnOffButton();
-        private boolean isSelected;
+        private final JBCheckBox checkBox = new JBCheckBox();
+        private EnvManagerToolWindow parent;
 
-        public GroupListCellRenderer() {
+        public GroupListCellRenderer(EnvManagerToolWindow parent) {
+            this.parent = parent;
             setLayout(new BorderLayout());
             setBorder(JBUI.Borders.empty(4, 8));
 
             nameLabel.setFont(UIUtil.getLabelFont());
             nameLabel.setBorder(JBUI.Borders.emptyRight(8));
 
-            onOffButton.setOpaque(false);
-            onOffButton.setFocusable(false);
-            onOffButton.setBorder(BorderFactory.createEmptyBorder());
-            onOffButton.setContentAreaFilled(false);
-            onOffButton.setPreferredSize(new Dimension(JBUI.scale(60), JBUI.scale(24)));
+            checkBox.setOpaque(false);
+            checkBox.setFocusable(false);
+            checkBox.setName("groupCheckBox");
+
+            checkBox.addMouseListener(new MouseAdapter() {
+                @Override
+                public void mouseClicked(MouseEvent e) {
+                    // 阻止事件冒泡，避免被列表处理
+                    e.consume();
+
+                    EnvGroup group = (EnvGroup) checkBox.getClientProperty("envGroup");
+                    if (group != null && !"all_variables".equals(group.getId())) {
+                        parent.toggleGroupActivation(group);
+
+                        checkBox.setSelected(group.isActive());
+                    }
+                }
+            });
 
             add(nameLabel, BorderLayout.CENTER);
-            add(onOffButton, BorderLayout.EAST);
+            add(checkBox, BorderLayout.EAST);
         }
 
         @Override
         public Component getListCellRendererComponent(JList<? extends EnvGroup> list,
-            EnvGroup group,
-            int index,
-            boolean isSelected,
-            boolean cellHasFocus) {
-            this.isSelected = isSelected;
+            EnvGroup group, int index,
+            boolean isSelected, boolean cellHasFocus) {
+            nameLabel.setText(group.getName());
+            checkBox.putClientProperty("envGroup", group);
 
-            // 设置背景和前景色
+            if ("all_variables".equals(group.getId())) {
+                checkBox.setVisible(false);
+            } else {
+                checkBox.setVisible(true);
+                checkBox.setSelected(group.isActive());
+            }
+
             if (isSelected) {
                 setBackground(UIUtil.getListSelectionBackground(true));
                 nameLabel.setForeground(UIUtil.getListSelectionForeground(true));
@@ -552,23 +524,10 @@ public class EnvManagerToolWindow {
                 nameLabel.setForeground(group.isActive() ?
                                         UIUtil.getLabelForeground() : UIUtil.getLabelDisabledForeground());
             }
-
-            // 设置组名
-            nameLabel.setText(group.getName());
-
-            if ("all_variables".equals(group.getId())) {
-                onOffButton.setVisible(false);
-            } else {
-                onOffButton.setVisible(true);
-                // 设置开关状态
-                onOffButton.setSelected(group.isActive());
-            }
-
             return this;
         }
     }
 
-    // Modern table cell renderer
     private static class ModernTableCellRenderer extends DefaultTableCellRenderer {
         @Override
         public Component getTableCellRendererComponent(JTable table,
@@ -578,9 +537,7 @@ public class EnvManagerToolWindow {
             int row,
             int column) {
             super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-
             setBorder(JBUI.Borders.empty(4, 8));
-
             if (isSelected) {
                 setBackground(UIUtil.getTableSelectionBackground(true));
                 setForeground(UIUtil.getTableSelectionForeground(true));
@@ -588,18 +545,6 @@ public class EnvManagerToolWindow {
                 setBackground(row % 2 == 0 ? UIUtil.getTableBackground() : UIUtil.getTableBackground(true));
                 setForeground(UIUtil.getTableForeground());
             }
-
-            // Truncate long values with ellipsis
-            if (value != null && column == 1) { // Value column
-                String text = value.toString();
-                if (text.length() > 50) {
-                    setText(text.substring(0, 47) + "...");
-                    setToolTipText(text);
-                } else {
-                    setToolTipText(null);
-                }
-            }
-
             return this;
         }
     }
