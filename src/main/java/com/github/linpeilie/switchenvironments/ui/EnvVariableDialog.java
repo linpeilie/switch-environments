@@ -58,7 +58,7 @@ public class EnvVariableDialog extends DialogWrapper {
             .getPanel();
 
         panel.setBorder(JBUI.Borders.empty(10));
-        panel.setPreferredSize(JBUI.size(500, 250));
+        panel.setPreferredSize(JBUI.size(500, 150));
 
         return panel;
     }

@@ -96,7 +96,7 @@ public final class EnvManagerService implements PersistentStateComponent<EnvMana
         });
     }
 
-    public void importFromFile(File file) throws IOException {
+    public void importFromFile(File file, String targetGroupId) throws IOException {
         List<EnvVariable> importedVars = new ArrayList<>();
         String fileName = file.getName().toLowerCase();
 
@@ -139,7 +139,7 @@ public final class EnvManagerService implements PersistentStateComponent<EnvMana
                             .replace("\\!", "!");
                     }
 
-                    EnvVariable envVar = new EnvVariable(key, value, "imported");
+                    EnvVariable envVar = new EnvVariable(key, value, targetGroupId);
                     importedVars.add(envVar);
                 }
             }
