@@ -21,12 +21,14 @@ import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.ui.components.OnOffButton;
 import com.intellij.ui.table.JBTable;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Rectangle;
 import java.awt.event.MouseAdapter;
@@ -34,11 +36,15 @@ import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import javax.swing.BorderFactory;
 import javax.swing.DefaultListModel;
 import javax.swing.Icon;
 import javax.swing.JComponent;
+import javax.swing.JLabel;
 import javax.swing.JList;
+import javax.swing.JPanel;
 import javax.swing.JTable;
+import javax.swing.ListCellRenderer;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.border.Border;
@@ -200,7 +206,8 @@ public class EnvManagerToolWindow {
                     if (group != null && !"all_variables".equals(group.getId())) {
                         // Check if click was in the toggle area (right 60 pixels)
                         int toggleAreaWidth = JBUI.scale(60);
-                        if (e.getX() >= cellBounds.x + cellBounds.width - toggleAreaWidth) {
+                        int width = cellBounds.x + cellBounds.width - toggleAreaWidth;
+                        if (e.getX() >= width && e.getX() <= cellBounds.width) {
                             toggleGroupActivation(group);
                         }
                     }
@@ -504,44 +511,60 @@ public class EnvManagerToolWindow {
     public JComponent getContent() {
         return mainPanel;
     }
-
     // Modern list cell renderer for groups
-    private class GroupListCellRenderer extends ColoredListCellRenderer<EnvGroup> {
-        @Override
-        protected void customizeCellRenderer(@NotNull JList<? extends EnvGroup> list,
-            EnvGroup value,
-            int index,
-            boolean selected,
-            boolean hasFocus) {
+    private static class GroupListCellRenderer extends JPanel implements ListCellRenderer<EnvGroup> {
 
-            setBackground(selected ? UIUtil.getListSelectionBackground(true) : UIUtil.getListBackground());
+        private final JBLabel nameLabel = new JBLabel();
+        private final OnOffButton onOffButton = new OnOffButton();
+        private boolean isSelected;
 
-            // Icon only for special group
-            if ("all_variables".equals(value.getId())) {
-                setIcon(AllIcons.Nodes.ConfigFolder);
-            } else {
-                setIcon(null);
-            }
-
-            // Group name
-            if (value.isActive() || "all_variables".equals(value.getId())) {
-                append(value.getName(), SimpleTextAttributes.REGULAR_ATTRIBUTES);
-            } else {
-                append(value.getName(), SimpleTextAttributes.GRAYED_ATTRIBUTES);
-            }
-
-            // Toggle indicator for non-special groups
-            if (!"all_variables".equals(value.getId())) {
-                append("  ");
-                if (value.isActive()) {
-                    append("ON", new SimpleTextAttributes(SimpleTextAttributes.STYLE_BOLD, new Color(76, 175, 80)));
-                } else {
-                    append("OFF",
-                        new SimpleTextAttributes(SimpleTextAttributes.STYLE_PLAIN, UIUtil.getInactiveTextColor()));
-                }
-            }
-
+        public GroupListCellRenderer() {
+            setLayout(new BorderLayout());
             setBorder(JBUI.Borders.empty(4, 8));
+
+            nameLabel.setFont(UIUtil.getLabelFont());
+            nameLabel.setBorder(JBUI.Borders.emptyRight(8));
+
+            onOffButton.setOpaque(false);
+            onOffButton.setFocusable(false);
+            onOffButton.setBorder(BorderFactory.createEmptyBorder());
+            onOffButton.setContentAreaFilled(false);
+            onOffButton.setPreferredSize(new Dimension(JBUI.scale(60), JBUI.scale(24)));
+
+            add(nameLabel, BorderLayout.CENTER);
+            add(onOffButton, BorderLayout.EAST);
+        }
+
+        @Override
+        public Component getListCellRendererComponent(JList<? extends EnvGroup> list,
+            EnvGroup group,
+            int index,
+            boolean isSelected,
+            boolean cellHasFocus) {
+            this.isSelected = isSelected;
+
+            // 设置背景和前景色
+            if (isSelected) {
+                setBackground(UIUtil.getListSelectionBackground(true));
+                nameLabel.setForeground(UIUtil.getListSelectionForeground(true));
+            } else {
+                setBackground(UIUtil.getListBackground());
+                nameLabel.setForeground(group.isActive() ?
+                                        UIUtil.getLabelForeground() : UIUtil.getLabelDisabledForeground());
+            }
+
+            // 设置组名
+            nameLabel.setText(group.getName());
+
+            if ("all_variables".equals(group.getId())) {
+                onOffButton.setVisible(false);
+            } else {
+                onOffButton.setVisible(true);
+                // 设置开关状态
+                onOffButton.setSelected(group.isActive());
+            }
+
+            return this;
         }
     }
 
