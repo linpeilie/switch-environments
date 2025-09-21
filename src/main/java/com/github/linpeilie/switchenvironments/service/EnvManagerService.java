@@ -24,7 +24,7 @@ import org.jetbrains.annotations.Nullable;
 public final class EnvManagerService implements PersistentStateComponent<EnvManagerService> {
 
     private List<EnvVariable> envVariables = new ArrayList<>();
-    private Map<String, String> currentEnvVariables = new HashMap<>();
+    private final Map<String, String> currentEnvVariables = new HashMap<>();
 
     public static EnvManagerService getInstance() {
         return ApplicationManager.getApplication().getService(EnvManagerService.class);

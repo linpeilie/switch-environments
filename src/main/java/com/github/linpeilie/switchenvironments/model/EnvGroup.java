@@ -12,7 +12,8 @@ public class EnvGroup {
     private String description;
     private boolean active;
     private List<EnvVariable> variables;
-    private boolean editable = false;
+    private boolean editable = true;
+    private boolean showAllVariables = false;
 
     public EnvGroup() {
         this.id = UUID.randomUUID().toString();
@@ -83,13 +84,22 @@ public class EnvGroup {
         this.editable = editable;
     }
 
+    public boolean isShowAllVariables() {
+        return showAllVariables;
+    }
+
+    public void setShowAllVariables(boolean showAllVariables) {
+        this.showAllVariables = showAllVariables;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
         EnvGroup envGroup = (EnvGroup) o;
-        return active == envGroup.active && editable == envGroup.editable && Objects.equals(id, envGroup.id) &&
+        return active == envGroup.active && editable == envGroup.editable &&
+               showAllVariables == envGroup.showAllVariables && Objects.equals(id, envGroup.id) &&
                Objects.equals(name, envGroup.name) &&
                Objects.equals(description, envGroup.description) &&
                Objects.equals(variables, envGroup.variables);
@@ -97,7 +107,7 @@ public class EnvGroup {
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, name, description, active, variables, editable);
+        return Objects.hash(id, name, description, active, variables, editable, showAllVariables);
     }
 
     @Override
@@ -109,6 +119,7 @@ public class EnvGroup {
             .add("description='" + description + "'")
             .add("variables=" + variables)
             .add("editable=" + editable)
+            .add("showAllVariables=" + showAllVariables)
             .toString();
     }
 }

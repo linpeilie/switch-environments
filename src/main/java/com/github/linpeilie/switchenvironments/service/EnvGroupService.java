@@ -21,14 +21,9 @@ public final class EnvGroupService implements PersistentStateComponent<EnvGroupS
 
     public EnvGroupService() {
         // Create default groups
-        if (envGroups.isEmpty()) {
-            // Create all variables group (read-only, always active) - first position
-            EnvGroup allVarsGroup = new EnvGroup("环境变量", "All active environment variables");
-            allVarsGroup.setId("all_variables");
-            allVarsGroup.setActive(true);
-            allVarsGroup.setEditable(false);
-            envGroups.add(allVarsGroup);
-        }
+        // Create all variables group (read-only, always active) - first position
+        EnvGroup allVarsGroup = buildDefaultShowAllVariablesGroup();
+        envGroups.add(allVarsGroup);
     }
 
     public static EnvGroupService getInstance() {
@@ -47,24 +42,25 @@ public final class EnvGroupService implements PersistentStateComponent<EnvGroupS
         ensureDefaultGroups();
     }
 
+    private EnvGroup buildDefaultShowAllVariablesGroup() {
+        EnvGroup allVarsGroup = new EnvGroup("环境变量", "All active environment variables");
+        allVarsGroup.setId("all_variables");
+        allVarsGroup.setActive(true);
+        allVarsGroup.setEditable(false);
+        allVarsGroup.setShowAllVariables(true);
+        return allVarsGroup;
+    }
+
     private void ensureDefaultGroups() {
-        boolean hasAllVars = envGroups.stream().anyMatch(g -> "all_variables".equals(g.getId()));
+        boolean hasAllVars = envGroups.stream().anyMatch(EnvGroup::isShowAllVariables);
 
         if (!hasAllVars) {
-            EnvGroup allVarsGroup = new EnvGroup("环境变量", "All active environment variables");
-            allVarsGroup.setId("all_variables");
-            allVarsGroup.setActive(true);
-            allVarsGroup.setEditable(false);
-            envGroups.add(0, allVarsGroup); // Always first
+            envGroups.addFirst(buildDefaultShowAllVariablesGroup()); // Always first
         }
     }
 
     public List<EnvGroup> getEnvGroups() {
         return new ArrayList<>(envGroups);
-    }
-
-    public void setEnvGroups(List<EnvGroup> envGroups) {
-        this.envGroups = new ArrayList<>(envGroups);
     }
 
     public void addEnvGroup(EnvGroup envGroup) {
@@ -105,9 +101,4 @@ public final class EnvGroupService implements PersistentStateComponent<EnvGroupS
             .orElse(false);
     }
 
-    public List<EnvGroup> getActiveGroups() {
-        return envGroups.stream()
-            .filter(EnvGroup::isActive)
-            .collect(ArrayList::new, ArrayList::add, ArrayList::addAll);
-    }
 }
