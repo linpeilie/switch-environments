@@ -50,7 +50,7 @@ public class EnvManagerToolWindow {
         mainPanel.setBackground(UIUtil.getPanelBackground());
 
         // 创建表格用于分组（替换原来的列表）
-        groupTableModel = new DefaultTableModel(new Object[]{"Group"}, 0) {
+        groupTableModel = new DefaultTableModel(new Object[] {"Group"}, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
                 return false;
@@ -168,7 +168,9 @@ public class EnvManagerToolWindow {
             @Override
             public void mouseClicked(MouseEvent e) {
                 int row = groupTable.rowAtPoint(e.getPoint());
-                if (row < 0) return;
+                if (row < 0) {
+                    return;
+                }
 
                 EnvGroup group = (EnvGroup) groupTableModel.getValueAt(row, 0);
                 Rectangle cellRect = groupTable.getCellRect(row, 0, true);
@@ -232,8 +234,7 @@ public class EnvManagerToolWindow {
         actionGroup.add(createAction("Delete Group", "Delete the selected group", AllIcons.General.Remove,
             this::deleteSelectedGroup, () -> {
                 EnvGroup selected = getSelectedGroup();
-                return selected != null && !"imported".equals(selected.getId()) &&
-                       !"all_variables".equals(selected.getId());
+                return selected != null && !"all_variables".equals(selected.getId());
             }));
 
         ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar("EnvGroupToolbar", actionGroup, true);
@@ -313,7 +314,7 @@ public class EnvManagerToolWindow {
         groupTableModel.setRowCount(0);
         List<EnvGroup> groups = groupService.getEnvGroups();
         for (EnvGroup group : groups) {
-            groupTableModel.addRow(new Object[]{group});
+            groupTableModel.addRow(new Object[] {group});
         }
 
         if (selectedGroup != null) {
@@ -369,8 +370,7 @@ public class EnvManagerToolWindow {
 
     private void deleteSelectedGroup() {
         EnvGroup selectedGroup = getSelectedGroup();
-        if (selectedGroup != null && !"imported".equals(selectedGroup.getId()) &&
-            !"all_variables".equals(selectedGroup.getId())) {
+        if (selectedGroup != null && !"all_variables".equals(selectedGroup.getId())) {
             int result = Messages.showYesNoDialog(mainPanel,
                 "Are you sure you want to delete the group '" + selectedGroup.getName() + "'?", "Delete Group",
                 Messages.getQuestionIcon());

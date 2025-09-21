@@ -16,20 +16,25 @@
     <idea-version since-build="203"/>
 
     <depends>com.intellij.modules.platform</depends>
+    <depends>com.intellij.java</depends>
 
     <extensions defaultExtensionNs="com.intellij">
         <!-- TODO: 图标-->
-<!--        <toolWindow id="Environment Variables" secondary="true" icon="/icons/env_icon.png"-->
-<!--                    anchor="right" factoryClass="com.example.envmanager.ui.EnvManagerToolWindowFactory"/>-->
+        <!--        <toolWindow id="Environment Variables" secondary="true" icon="/icons/env_icon.png"-->
+        <!--                    anchor="right" factoryClass="com.example.envmanager.ui.EnvManagerToolWindowFactory"/>-->
         <toolWindow id="Environment Variables" secondary="true"
-                    anchor="right" factoryClass="com.github.linpeilie.switchenvironments.ui.EnvManagerToolWindowFactory"/>
+                    anchor="right"
+                    factoryClass="com.github.linpeilie.switchenvironments.ui.EnvManagerToolWindowFactory"/>
 
         <applicationService serviceImplementation="com.github.linpeilie.switchenvironments.service.EnvManagerService"/>
         <applicationService serviceImplementation="com.github.linpeilie.switchenvironments.service.EnvGroupService"/>
 
-        <applicationConfigurable parentId="tools" instance="com.github.linpeilie.switchenvironments.settings.EnvManagerConfigurable"
+        <applicationConfigurable parentId="tools"
+                                 instance="com.github.linpeilie.switchenvironments.settings.EnvManagerConfigurable"
                                  id="com.github.linpeilie.switchenvironments.settings.EnvManagerConfigurable"
                                  displayName="Environment Variables Manager"/>
+
+        <runConfigurationExtension implementation="com.github.linpeilie.switchenvironments.EnvironmentInjector"/>
     </extensions>
 
     <actions>

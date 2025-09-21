@@ -26,12 +26,8 @@ public final class EnvGroupService implements PersistentStateComponent<EnvGroupS
             EnvGroup allVarsGroup = new EnvGroup("环境变量", "All active environment variables");
             allVarsGroup.setId("all_variables");
             allVarsGroup.setActive(true);
+            allVarsGroup.setEditable(false);
             envGroups.add(allVarsGroup);
-
-            // Create imported group for imported variables
-            EnvGroup importedGroup = new EnvGroup("Imported", "Variables imported from files");
-            importedGroup.setId("imported");
-            envGroups.add(importedGroup);
         }
     }
 
@@ -52,20 +48,14 @@ public final class EnvGroupService implements PersistentStateComponent<EnvGroupS
     }
 
     private void ensureDefaultGroups() {
-        boolean hasImported = envGroups.stream().anyMatch(g -> "imported".equals(g.getId()));
         boolean hasAllVars = envGroups.stream().anyMatch(g -> "all_variables".equals(g.getId()));
 
         if (!hasAllVars) {
             EnvGroup allVarsGroup = new EnvGroup("环境变量", "All active environment variables");
             allVarsGroup.setId("all_variables");
             allVarsGroup.setActive(true);
+            allVarsGroup.setEditable(false);
             envGroups.add(0, allVarsGroup); // Always first
-        }
-
-        if (!hasImported) {
-            EnvGroup importedGroup = new EnvGroup("Imported", "Variables imported from files");
-            importedGroup.setId("imported");
-            envGroups.add(importedGroup);
         }
     }
 
@@ -83,10 +73,6 @@ public final class EnvGroupService implements PersistentStateComponent<EnvGroupS
     }
 
     public void removeEnvGroup(String groupId) {
-        // Don't allow removal of imported and all_variables groups
-        if ("imported".equals(groupId) || "all_variables".equals(groupId)) {
-            return;
-        }
         envGroups.removeIf(group -> group.getId().equals(groupId));
     }
 
@@ -105,16 +91,7 @@ public final class EnvGroupService implements PersistentStateComponent<EnvGroupS
             .findFirst();
     }
 
-    public EnvGroup getDefaultGroup() {
-        return getGroupById("imported").orElse(envGroups.get(1)); // Use imported as default for new variables
-    }
-
     public void setGroupActive(String groupId, boolean active) {
-        // All variables group is always active
-        if ("all_variables".equals(groupId)) {
-            return;
-        }
-
         getGroupById(groupId).ifPresent(group -> {
             group.setActive(active);
             // Trigger service update

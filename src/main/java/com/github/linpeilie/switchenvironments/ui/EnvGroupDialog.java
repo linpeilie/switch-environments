@@ -33,11 +33,9 @@ public class EnvGroupDialog extends DialogWrapper {
             activeCheckBox.setSelected(group.isActive());
 
             // Disable editing of special groups
-            if ("imported".equals(group.getId()) || "all_variables".equals(group.getId())) {
+            if ("all_variables".equals(group.getId())) {
                 nameField.setEditable(false);
-                if ("all_variables".equals(group.getId())) {
-                    activeCheckBox.setEnabled(false); // All variables group is always active
-                }
+                activeCheckBox.setEnabled(false); // All variables group is always active
                 setTitle("View Environment Group");
             }
         } else {
