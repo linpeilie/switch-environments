@@ -81,13 +81,6 @@ public class EnvVariableDialog extends DialogWrapper {
             return false;
         }
 
-        // Check for valid variable name (basic validation)
-        if (!name.matches("^[a-zA-Z_][a-zA-Z0-9_]*$")) {
-            setErrorText("Variable name must start with a letter or underscore and contain only letters, numbers, and underscores");
-            nameField.requestFocus();
-            return false;
-        }
-
         // Check for duplicate names in the same group (except for current variable)
         EnvManagerService envService = EnvManagerService.getInstance();
         for (EnvVariable existingVar : envService.getVariablesByGroup(group.getId())) {
