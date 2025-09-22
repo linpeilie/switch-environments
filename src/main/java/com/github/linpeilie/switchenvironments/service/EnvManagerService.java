@@ -1,102 +1,90 @@
 package com.github.linpeilie.switchenvironments.service;
 
+import com.github.linpeilie.switchenvironments.model.EnvGroup;
 import com.github.linpeilie.switchenvironments.model.EnvVariable;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.components.PersistentStateComponent;
-import com.intellij.openapi.components.Service;
-import com.intellij.openapi.components.State;
-import com.intellij.openapi.components.Storage;
-import com.intellij.util.xmlb.XmlSerializerUtil;
+import com.intellij.openapi.project.Project;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-@Service
-@State(name = "EnvManagerService", storages = @Storage("envManagerSettings.xml"))
-public final class EnvManagerService implements PersistentStateComponent<EnvManagerService> {
+public class EnvManagerService {
 
-    private List<EnvVariable> envVariables = new ArrayList<>();
-    private final Map<String, String> currentEnvVariables = new HashMap<>();
+    private final EnvGroupService envGroupService;
+    private final EnvVariableService envVariableService;
 
-    public static EnvManagerService getInstance() {
-        return ApplicationManager.getApplication().getService(EnvManagerService.class);
+    public EnvManagerService(Project project) {
+        envGroupService = project.getService(EnvGroupService.class);
+        envVariableService = project.getService(EnvVariableService.class);
     }
 
-    @Override
-    public @Nullable EnvManagerService getState() {
-        return this;
+    public void clearAllData() {
+        envGroupService.clear();
+        envVariableService.clear();
     }
 
-    @Override
-    public void loadState(@NotNull EnvManagerService state) {
-        XmlSerializerUtil.copyBean(state, this);
-        updateCurrentEnvironmentVariables();
+    public List<EnvGroup> getEnvGroups() {
+        return envGroupService.getEnvGroups();
     }
 
-    public List<EnvVariable> getEnvVariables() {
-        return new ArrayList<>(envVariables);
+    public void addEnvGroup(EnvGroup envGroup) {
+        envGroupService.addEnvGroup(envGroup);
     }
 
-    public void setEnvVariables(List<EnvVariable> envVariables) {
-        this.envVariables = new ArrayList<>(envVariables);
-        updateCurrentEnvironmentVariables();
+    public void removeEnvGroup(String groupId) {
+        envGroupService.removeEnvGroup(groupId);
+    }
+
+    public void updateEnvGroup(EnvGroup envGroup) {
+        envGroupService.updateEnvGroup(envGroup);
+    }
+
+    public Optional<EnvGroup> getGroupById(String groupId) {
+        return envGroupService.getGroupById(groupId);
+    }
+
+    public void setGroupActive(String groupId, boolean active) {
+        envGroupService.setGroupActive(groupId, active);
+    }
+
+    public boolean isGroupActive(String groupId) {
+        return getGroupById(groupId).map(EnvGroup::isActive).orElse(false);
     }
 
     public void addEnvVariable(EnvVariable envVariable) {
-        envVariables.removeIf(var -> var.getName().equals(envVariable.getName()) &&
-                                     var.getGroupId().equals(envVariable.getGroupId()));
-        envVariables.add(envVariable);
-        updateCurrentEnvironmentVariables();
+        envVariableService.addEnvVariable(envVariable);
     }
 
     public void removeEnvVariable(EnvVariable envVariable) {
-        envVariables.remove(envVariable);
-        updateCurrentEnvironmentVariables();
+        envVariableService.removeEnvVariable(envVariable);
     }
 
     public void updateEnvVariable(EnvVariable oldVar, EnvVariable newVar) {
-        int index = envVariables.indexOf(oldVar);
-        if (index >= 0) {
-            envVariables.set(index, newVar);
-            updateCurrentEnvironmentVariables();
-        }
+        envVariableService.updateEnvVariable(oldVar, newVar);
     }
 
     public List<EnvVariable> getVariablesByGroup(String groupId) {
-        return envVariables.stream()
-            .filter(var -> var.getGroupId() != null && var.getGroupId().equals(groupId))
-            .collect(Collectors.toList());
+        return envVariableService.getVariablesByGroup(groupId);
     }
 
+    /**
+     * 获取激活的环境变量列表
+     */
     public List<EnvVariable> getActiveVariables() {
-        EnvGroupService groupService = EnvGroupService.getInstance();
-        return envVariables.stream()
-            .filter(var -> groupService.isGroupActive(var.getGroupId()))
+        return envVariableService.getAllVariables()
+            .stream()
+            .filter(var -> isGroupActive(var.getGroupId()))
             .collect(Collectors.toList());
     }
 
-    public Map<String, String> getCurrentEnvVariables() {
-        return new HashMap<>(currentEnvVariables);
-    }
-
-    public void updateCurrentEnvironmentVariables() {
-        currentEnvVariables.clear();
-        getActiveVariables().forEach(var -> {
-            if (var.getName() != null && var.getValue() != null) {
-                currentEnvVariables.put(var.getName(), var.getValue());
-            }
-        });
-    }
-
-    public void importFromFile(File file, String targetGroupId) throws IOException {
+    /**
+     * 导入变量
+     */
+    public void importEnvVariablesFromFile(File file, String targetGroupId) throws IOException {
         List<EnvVariable> importedVars = new ArrayList<>();
         String fileName = file.getName().toLowerCase();
 
@@ -128,10 +116,8 @@ public final class EnvManagerService implements PersistentStateComponent<EnvMana
 
                     // Handle escaped characters in properties files
                     if (fileName.endsWith(".properties")) {
-                        value = value.replace("\\n", "\n")
-                            .replace("\\r", "\r")
-                            .replace("\\t", "\t")
-                            .replace("\\\\", "\\");
+                        value =
+                            value.replace("\\n", "\n").replace("\\r", "\r").replace("\\t", "\t").replace("\\\\", "\\");
                         key = key.replace("\\ ", " ")
                             .replace("\\:", ":")
                             .replace("\\=", "=")
@@ -147,9 +133,8 @@ public final class EnvManagerService implements PersistentStateComponent<EnvMana
 
         // Add imported variables
         for (EnvVariable var : importedVars) {
-            addEnvVariable(var);
+            envVariableService.addEnvVariable(var);
         }
     }
-
 
 }

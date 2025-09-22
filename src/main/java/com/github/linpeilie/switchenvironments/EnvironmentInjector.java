@@ -2,6 +2,7 @@ package com.github.linpeilie.switchenvironments;
 
 import com.github.linpeilie.switchenvironments.model.EnvVariable;
 import com.github.linpeilie.switchenvironments.service.EnvManagerService;
+import com.github.linpeilie.switchenvironments.service.EnvVariableService;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.RunConfigurationExtension;
 import com.intellij.execution.configurations.JavaParameters;
@@ -23,8 +24,7 @@ public class EnvironmentInjector extends RunConfigurationExtension {
         @NotNull JavaParameters params,
         @Nullable RunnerSettings runnerSettings) throws ExecutionException {
         if (configuration instanceof RunConfigurationBase) {
-            EnvManagerService envManagerService =
-                ApplicationManager.getApplication().getService(EnvManagerService.class);
+            EnvManagerService envManagerService = new EnvManagerService(configuration.getProject());
 
             List<EnvVariable> activeVariables = envManagerService.getActiveVariables();
 
@@ -35,7 +35,8 @@ public class EnvironmentInjector extends RunConfigurationExtension {
                     LOG.info("environment name : " + activeVariable.getName() + " already exists");
                 } else {
                     env.put(activeVariable.getName(), activeVariable.getValue());
-                    LOG.info("environment name : " + activeVariable.getName() + ", value : " + activeVariable.getValue() +
+                    LOG.info(
+                        "environment name : " + activeVariable.getName() + ", value : " + activeVariable.getValue() +
                         " injected.");
                 }
             }

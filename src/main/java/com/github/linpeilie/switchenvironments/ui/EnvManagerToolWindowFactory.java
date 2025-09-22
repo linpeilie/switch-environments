@@ -11,7 +11,7 @@ public class EnvManagerToolWindowFactory implements ToolWindowFactory {
 
     @Override
     public void createToolWindowContent(@NotNull Project project, @NotNull ToolWindow toolWindow) {
-        EnvManagerToolWindow envManagerToolWindow = new EnvManagerToolWindow();
+        EnvManagerToolWindow envManagerToolWindow = new EnvManagerToolWindow(project);
         ContentFactory contentFactory = ContentFactory.getInstance();
         Content content = contentFactory.createContent(envManagerToolWindow.getContent(), "", false);
         toolWindow.getContentManager().addContent(content);

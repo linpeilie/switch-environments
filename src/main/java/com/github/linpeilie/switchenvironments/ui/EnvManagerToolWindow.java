@@ -4,23 +4,37 @@ import com.github.linpeilie.switchenvironments.model.EnvGroup;
 import com.github.linpeilie.switchenvironments.model.EnvVariable;
 import com.github.linpeilie.switchenvironments.service.EnvGroupService;
 import com.github.linpeilie.switchenvironments.service.EnvManagerService;
+import com.github.linpeilie.switchenvironments.service.EnvVariableService;
+import com.github.linpeilie.switchenvironments.ui.render.SettingsActionGroup;
+import com.google.common.reflect.TypeToken;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.fileChooser.FileChooser;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
+import com.intellij.openapi.fileChooser.FileChooserFactory;
+import com.intellij.openapi.fileChooser.FileSaverDescriptor;
+import com.intellij.openapi.fileChooser.FileSaverDialog;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.VirtualFileWrapper;
 import com.intellij.ui.components.*;
 import com.intellij.ui.table.JBTable;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
+import java.io.FileWriter;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.io.Writer;
+import org.apache.commons.collections.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.border.Border;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
@@ -37,14 +51,15 @@ public class EnvManagerToolWindow {
     private final JBTable variableTable;
     private final DefaultTableModel groupTableModel; // 替换为 DefaultTableModel
     private final DefaultTableModel tableModel;
-    private final EnvManagerService envService;
-    private final EnvGroupService groupService;
+    private final EnvManagerService envManagerService;
     private final JBLabel variableHeaderLabel;
     private final Splitter splitter;
+    private final Project project;
 
-    public EnvManagerToolWindow() {
-        envService = EnvManagerService.getInstance();
-        groupService = EnvGroupService.getInstance();
+    public EnvManagerToolWindow(Project project) {
+        this.project = project;
+
+        envManagerService = new EnvManagerService(project);
 
         mainPanel = new JBPanel<>(new BorderLayout());
         mainPanel.setBackground(UIUtil.getPanelBackground());
@@ -116,14 +131,14 @@ public class EnvManagerToolWindow {
         panel.setBackground(UIUtil.getPanelBackground());
         panel.setBorder(createTitledBorder("Groups"));
 
+        ActionToolbar toolbar = createGroupToolbar();
+        panel.add(toolbar.getComponent(), BorderLayout.NORTH);
+
         JBScrollPane scrollPane = new JBScrollPane(groupTable);
         scrollPane.setBorder(JBUI.Borders.empty());
         scrollPane.setBackground(UIUtil.getListBackground());
         scrollPane.setViewportBorder(JBUI.Borders.empty(5));
         panel.add(scrollPane, BorderLayout.CENTER);
-
-        ActionToolbar toolbar = createGroupToolbar();
-        panel.add(toolbar.getComponent(), BorderLayout.SOUTH);
 
         return panel;
     }
@@ -137,14 +152,15 @@ public class EnvManagerToolWindow {
         headerPanel.setBorder(JBUI.Borders.empty(8, 12));
         variableHeaderLabel.setBorder(JBUI.Borders.empty());
         headerPanel.add(variableHeaderLabel, BorderLayout.WEST);
+
+        ActionToolbar toolbar = createVariableToolbar();
+        headerPanel.add(toolbar.getComponent(), BorderLayout.EAST);
+
         panel.add(headerPanel, BorderLayout.NORTH);
 
         JBScrollPane scrollPane = new JBScrollPane(variableTable);
         scrollPane.setBorder(createTitledBorder(""));
         panel.add(scrollPane, BorderLayout.CENTER);
-
-        ActionToolbar toolbar = createVariableToolbar();
-        panel.add(toolbar.getComponent(), BorderLayout.SOUTH);
 
         return panel;
     }
@@ -210,7 +226,7 @@ public class EnvManagerToolWindow {
 
     public void toggleGroupActivation(EnvGroup group) {
         boolean newState = !group.isActive();
-        groupService.setGroupActive(group.getId(), newState);
+        envManagerService.setGroupActive(group.getId(), newState);
 
         SwingUtilities.invokeLater(() -> {
             refreshGroupList();
@@ -237,6 +253,24 @@ public class EnvManagerToolWindow {
                 return selected != null && !"all_variables".equals(selected.getId());
             }));
 
+        // 设置按钮（带下拉菜单）
+        DefaultActionGroup settingsGroup = new SettingsActionGroup(); // true = popup
+        settingsGroup.add(new AnAction("Import Config", "Import configuration", AllIcons.Actions.Download) {
+            @Override
+            public void actionPerformed(@NotNull AnActionEvent e) {
+                importConfig();
+            }
+        });
+        settingsGroup.add(new AnAction("Export Config", "Export configuration", AllIcons.Actions.Upload) {
+            @Override
+            public void actionPerformed(@NotNull AnActionEvent e) {
+                exportConfig();
+            }
+        });
+
+        actionGroup.addSeparator();
+        actionGroup.add(settingsGroup);
+
         ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar("EnvGroupToolbar", actionGroup, true);
         toolbar.setTargetComponent(groupTable);
         return toolbar;
@@ -245,11 +279,12 @@ public class EnvManagerToolWindow {
     private ActionToolbar createVariableToolbar() {
         DefaultActionGroup actionGroup = new DefaultActionGroup();
 
-        actionGroup.add(createAction("Add Variable", "Add a new environment variable", AllIcons.General.Add,
-            this::addNewVariable, () -> {
-                EnvGroup selected = getSelectedGroup();
-                return selected != null && !"all_variables".equals(selected.getId());
-            }));
+        actionGroup.add(
+            createAction("Add Variable", "Add a new environment variable", AllIcons.General.Add, this::addNewVariable,
+                () -> {
+                    EnvGroup selected = getSelectedGroup();
+                    return selected != null && !"all_variables".equals(selected.getId());
+                }));
 
         actionGroup.add(createAction("Edit Variable", "Edit the selected variable", AllIcons.Actions.Edit,
             this::editSelectedVariable, () -> {
@@ -284,7 +319,10 @@ public class EnvManagerToolWindow {
         return createAction(text, description, icon, action, null);
     }
 
-    private AnAction createAction(String text, String description, Icon icon, Runnable action,
+    private AnAction createAction(String text,
+        String description,
+        Icon icon,
+        Runnable action,
         Supplier<Boolean> enabledSupplier) {
         return new AnAction(text, description, icon) {
             @Override
@@ -312,7 +350,7 @@ public class EnvManagerToolWindow {
     private void refreshGroupList() {
         EnvGroup selectedGroup = getSelectedGroup();
         groupTableModel.setRowCount(0);
-        List<EnvGroup> groups = groupService.getEnvGroups();
+        List<EnvGroup> groups = envManagerService.getEnvGroups();
         for (EnvGroup group : groups) {
             groupTableModel.addRow(new Object[] {group});
         }
@@ -334,9 +372,9 @@ public class EnvManagerToolWindow {
 
         List<EnvVariable> variables;
         if ("all_variables".equals(group.getId())) {
-            variables = envService.getActiveVariables();
+            variables = envManagerService.getActiveVariables();
         } else {
-            variables = envService.getVariablesByGroup(group.getId());
+            variables = envManagerService.getVariablesByGroup(group.getId());
         }
 
         for (EnvVariable var : variables) {
@@ -349,13 +387,13 @@ public class EnvManagerToolWindow {
     }
 
     private void showGroupDialog(EnvGroup group) {
-        EnvGroupDialog dialog = new EnvGroupDialog(group);
+        EnvGroupDialog dialog = new EnvGroupDialog(group, envManagerService);
         if (dialog.showAndGet()) {
             EnvGroup result = dialog.getGroup();
             if (group == null) {
-                groupService.addEnvGroup(result);
+                envManagerService.addEnvGroup(result);
             } else {
-                groupService.updateEnvGroup(result);
+                envManagerService.updateEnvGroup(result);
             }
             refreshGroupList();
         }
@@ -375,7 +413,7 @@ public class EnvManagerToolWindow {
                 "Are you sure you want to delete the group '" + selectedGroup.getName() + "'?", "Delete Group",
                 Messages.getQuestionIcon());
             if (result == Messages.YES) {
-                groupService.removeEnvGroup(selectedGroup.getId());
+                envManagerService.removeEnvGroup(selectedGroup.getId());
                 refreshGroupList();
                 refreshData();
             }
@@ -395,7 +433,7 @@ public class EnvManagerToolWindow {
 
         if (selectedRow >= 0 && selectedGroup != null && !"all_variables".equals(selectedGroup.getId())) {
             String varName = (String) tableModel.getValueAt(selectedRow, 0);
-            EnvVariable variable = envService.getVariablesByGroup(selectedGroup.getId())
+            EnvVariable variable = envManagerService.getVariablesByGroup(selectedGroup.getId())
                 .stream()
                 .filter(v -> v.getName().equals(varName))
                 .findFirst()
@@ -412,17 +450,17 @@ public class EnvManagerToolWindow {
 
         if (selectedRow >= 0 && selectedGroup != null && !"all_variables".equals(selectedGroup.getId())) {
             String varName = (String) tableModel.getValueAt(selectedRow, 0);
-            int result = Messages.showYesNoDialog(mainPanel,
-                "Are you sure you want to delete the variable '" + varName + "'?", "Delete Variable",
-                Messages.getQuestionIcon());
+            int result =
+                Messages.showYesNoDialog(mainPanel, "Are you sure you want to delete the variable '" + varName + "'?",
+                    "Delete Variable", Messages.getQuestionIcon());
             if (result == Messages.YES) {
-                EnvVariable variable = envService.getVariablesByGroup(selectedGroup.getId())
+                EnvVariable variable = envManagerService.getVariablesByGroup(selectedGroup.getId())
                     .stream()
                     .filter(v -> v.getName().equals(varName))
                     .findFirst()
                     .orElse(null);
                 if (variable != null) {
-                    envService.removeEnvVariable(variable);
+                    envManagerService.removeEnvVariable(variable);
                     loadVariablesForGroup(selectedGroup);
                     refreshAllVariablesViewIfNeeded();
                 }
@@ -431,13 +469,13 @@ public class EnvManagerToolWindow {
     }
 
     private void showVariableDialog(EnvVariable variable, EnvGroup group) {
-        EnvVariableDialog dialog = new EnvVariableDialog(variable, group);
+        EnvVariableDialog dialog = new EnvVariableDialog(variable, group, envManagerService);
         if (dialog.showAndGet()) {
             EnvVariable result = dialog.getVariable();
             if (variable == null) {
-                envService.addEnvVariable(result);
+                envManagerService.addEnvVariable(result);
             } else {
-                envService.updateEnvVariable(variable, result);
+                envManagerService.updateEnvVariable(variable, result);
             }
             loadVariablesForGroup(group);
             refreshAllVariablesViewIfNeeded();
@@ -470,7 +508,7 @@ public class EnvManagerToolWindow {
         VirtualFile file = FileChooser.chooseFile(descriptor, null, null);
         if (file != null) {
             try {
-                envService.importFromFile(new File(file.getPath()), selectedGroup.getId());
+                envManagerService.importEnvVariablesFromFile(new File(file.getPath()), selectedGroup.getId());
                 Messages.showInfoMessage(mainPanel,
                     "Environment variables imported successfully to group '" + selectedGroup.getName() + "'!",
                     "Import Complete");
@@ -500,9 +538,12 @@ public class EnvManagerToolWindow {
         }
 
         @Override
-        public Component getTableCellRendererComponent(JTable table, Object value,
-            boolean isSelected, boolean hasFocus,
-            int row, int column) {
+        public Component getTableCellRendererComponent(JTable table,
+            Object value,
+            boolean isSelected,
+            boolean hasFocus,
+            int row,
+            int column) {
             EnvGroup group = (EnvGroup) value;
             nameLabel.setText(group.getName());
 
@@ -512,8 +553,8 @@ public class EnvManagerToolWindow {
                 nameLabel.setForeground(UIUtil.getListSelectionForeground(true));
             } else {
                 panel.setBackground(UIUtil.getListBackground());
-                nameLabel.setForeground(group.isActive() ?
-                                        UIUtil.getLabelForeground() : UIUtil.getLabelDisabledForeground());
+                nameLabel.setForeground(
+                    group.isActive() ? UIUtil.getLabelForeground() : UIUtil.getLabelDisabledForeground());
             }
 
             // 特殊分组隐藏复选框
@@ -542,10 +583,79 @@ public class EnvManagerToolWindow {
                 setBackground(UIUtil.getTableSelectionBackground(true));
                 setForeground(UIUtil.getTableSelectionForeground(true));
             } else {
-                setBackground(row % 2 == 0 ? UIUtil.getTableBackground() : UIUtil.getTableBackground(true));
+                setBackground(UIUtil.getTableBackground());
                 setForeground(UIUtil.getTableForeground());
             }
             return this;
         }
     }
+
+    private void exportConfig() {
+        FileSaverDescriptor descriptor =
+            new FileSaverDescriptor("Export Environment Config", "Save environment config as JSON", "json");
+        FileSaverDialog saveDialog = FileChooserFactory.getInstance().createSaveFileDialog(descriptor, mainPanel);
+
+        VirtualFileWrapper fileWrapper = saveDialog.save("env_config.json");
+        if (fileWrapper == null) {
+            return; // 用户取消
+        }
+
+        File file = fileWrapper.getFile();
+
+        try (Writer writer = new FileWriter(file)) {
+            List<EnvGroup> groups = envManagerService.getEnvGroups();
+
+            groups.forEach(group -> {
+                group.setVariables(envManagerService.getVariablesByGroup(group.getId()));
+            });
+
+            Gson gson = new GsonBuilder().setPrettyPrinting().create();
+            gson.toJson(groups, writer);
+
+            Messages.showInfoMessage(mainPanel, "Export successful:\n" + file.getAbsolutePath(), "Export");
+        } catch (Exception e) {
+            Messages.showErrorDialog(mainPanel, "Export failed: " + e.getMessage(), "Error");
+        }
+    }
+
+    private void importConfig() {
+        FileChooserDescriptor descriptor = new FileChooserDescriptor(true, false, false, false, false, false);
+        descriptor.setTitle("Import Environment Config");
+        descriptor.setDescription("Select a JSON file to import environment groups");
+
+        VirtualFile file = FileChooser.chooseFile(descriptor, project, null);
+        if (file == null) {
+            return; // 用户取消
+        }
+
+        try (InputStream inputStream = file.getInputStream(); Reader reader = new InputStreamReader(inputStream)) {
+
+            Gson gson = new Gson();
+            List<EnvGroup> importedGroups = gson.fromJson(reader, new TypeToken<List<EnvGroup>>() {}.getType());
+
+            importedGroups.removeIf(group -> !group.isEditable());
+
+            if (importedGroups.isEmpty()) {
+                Messages.showWarningDialog(mainPanel, "The selected file contains no groups.", "Import");
+                return;
+            }
+
+            // 先清空，再导入
+            envManagerService.clearAllData();
+            importedGroups.forEach(group -> {
+                envManagerService.addEnvGroup(group);
+                if (CollectionUtils.isNotEmpty(group.getVariables())) {
+                    group.getVariables().forEach(envManagerService::addEnvVariable);
+                }
+            });
+
+            refreshGroupList();
+            refreshAllVariablesViewIfNeeded();
+            Messages.showInfoMessage(mainPanel, "Import successful, loaded " + importedGroups.size() + " groups.",
+                "Import");
+        } catch (Exception e) {
+            Messages.showErrorDialog(mainPanel, "Import failed: " + e.getMessage(), "Error");
+        }
+    }
+
 }

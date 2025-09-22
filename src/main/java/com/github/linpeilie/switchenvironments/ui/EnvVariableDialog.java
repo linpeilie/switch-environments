@@ -18,9 +18,11 @@ public class EnvVariableDialog extends DialogWrapper {
     private final EnvVariable originalVariable;
     private final EnvGroup group;
     private EnvVariable variable;
+    private final EnvManagerService envManagerService;
 
-    public EnvVariableDialog(@Nullable EnvVariable variable, EnvGroup group) {
+    public EnvVariableDialog(@Nullable EnvVariable variable, EnvGroup group, EnvManagerService envManagerService) {
         super(true);
+        this.envManagerService = envManagerService;
         this.originalVariable = variable;
         this.group = group;
         this.variable = variable != null ? copyVariable(variable) : new EnvVariable();
@@ -82,8 +84,7 @@ public class EnvVariableDialog extends DialogWrapper {
         }
 
         // Check for duplicate names in the same group (except for current variable)
-        EnvManagerService envService = EnvManagerService.getInstance();
-        for (EnvVariable existingVar : envService.getVariablesByGroup(group.getId())) {
+        for (EnvVariable existingVar : envManagerService.getVariablesByGroup(group.getId())) {
             if ((originalVariable == null || !existingVar.equals(originalVariable)) &&
                 name.equals(existingVar.getName())) {
                 setErrorText("Variable name already exists in this group");

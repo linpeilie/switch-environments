@@ -1,26 +1,27 @@
 package com.github.linpeilie.switchenvironments.ui;
 
 import com.github.linpeilie.switchenvironments.model.EnvGroup;
-import com.github.linpeilie.switchenvironments.service.EnvGroupService;
+import com.github.linpeilie.switchenvironments.service.EnvManagerService;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBTextField;
 import com.intellij.util.ui.FormBuilder;
 import com.intellij.util.ui.JBUI;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
 
 public class EnvGroupDialog extends DialogWrapper {
     private final JBTextField nameField;
     private final JBCheckBox activeCheckBox;
-    private final EnvGroup originalGroup;
+    private final EnvManagerService envManagerService;
     private EnvGroup group;
 
-    public EnvGroupDialog(@Nullable EnvGroup group) {
+    public EnvGroupDialog(@Nullable EnvGroup group,
+        @Nullable EnvManagerService envManagerService) {
         super(true);
-        this.originalGroup = group;
+        this.envManagerService = envManagerService;
         this.group = group != null ? copyGroup(group) : new EnvGroup();
 
         nameField = new JBTextField(20);
@@ -88,8 +89,7 @@ public class EnvGroupDialog extends DialogWrapper {
         }
 
         // Check for duplicate names (except for current group)
-        EnvGroupService groupService = EnvGroupService.getInstance();
-        for (EnvGroup existingGroup : groupService.getEnvGroups()) {
+        for (EnvGroup existingGroup : envManagerService.getEnvGroups()) {
             if (!existingGroup.getId().equals(group.getId()) &&
                 name.equals(existingGroup.getName())) {
                 setErrorText("Group name already exists");
