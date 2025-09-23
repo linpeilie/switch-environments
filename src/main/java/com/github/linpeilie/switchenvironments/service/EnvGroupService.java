@@ -19,10 +19,6 @@ public final class EnvGroupService implements PersistentStateComponent<EnvGroupS
     private List<EnvGroup> envGroups = new ArrayList<>();
 
     public EnvGroupService() {
-        // Create default groups
-        // Create all variables group (read-only, always active) - first position
-        EnvGroup allVarsGroup = buildDefaultShowAllVariablesGroup();
-        envGroups.add(allVarsGroup);
     }
 
     @Override
@@ -33,25 +29,6 @@ public final class EnvGroupService implements PersistentStateComponent<EnvGroupS
     @Override
     public void loadState(@NotNull EnvGroupService state) {
         XmlSerializerUtil.copyBean(state, this);
-        // Ensure default groups exist after loading
-        ensureDefaultGroups();
-    }
-
-    private EnvGroup buildDefaultShowAllVariablesGroup() {
-        EnvGroup allVarsGroup = new EnvGroup("环境变量", "All active environment variables");
-        allVarsGroup.setId("all_variables");
-        allVarsGroup.setActive(true);
-        allVarsGroup.setEditable(false);
-        allVarsGroup.setShowAllVariables(true);
-        return allVarsGroup;
-    }
-
-    private void ensureDefaultGroups() {
-        boolean hasAllVars = envGroups.stream().anyMatch(EnvGroup::isShowAllVariables);
-
-        if (!hasAllVars) {
-            envGroups.addFirst(buildDefaultShowAllVariablesGroup()); // Always first
-        }
     }
 
     void addEnvGroup(EnvGroup envGroup) {
@@ -90,6 +67,5 @@ public final class EnvGroupService implements PersistentStateComponent<EnvGroupS
 
     public void clear() {
         envGroups.clear();
-        ensureDefaultGroups();
     }
 }

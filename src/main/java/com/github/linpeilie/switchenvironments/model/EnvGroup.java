@@ -9,11 +9,8 @@ import java.util.UUID;
 public class EnvGroup {
     private String id;
     private String name;
-    private String description;
     private boolean active;
     private List<EnvVariable> variables;
-    private boolean editable = true;
-    private boolean showAllVariables = false;
     private int order;
 
     public EnvGroup() {
@@ -22,10 +19,9 @@ public class EnvGroup {
         this.active = true;
     }
 
-    public EnvGroup(String name, String description) {
+    public EnvGroup(String name) {
         this();
         this.name = name;
-        this.description = description;
     }
 
     public String getId() {
@@ -42,14 +38,6 @@ public class EnvGroup {
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
     }
 
     public boolean isActive() {
@@ -77,22 +65,6 @@ public class EnvGroup {
         this.variables.remove(variable);
     }
 
-    public boolean isEditable() {
-        return editable;
-    }
-
-    public void setEditable(boolean editable) {
-        this.editable = editable;
-    }
-
-    public boolean isShowAllVariables() {
-        return showAllVariables;
-    }
-
-    public void setShowAllVariables(boolean showAllVariables) {
-        this.showAllVariables = showAllVariables;
-    }
-
     public int getOrder() {
         return order;
     }
@@ -107,16 +79,13 @@ public class EnvGroup {
             return false;
         }
         EnvGroup envGroup = (EnvGroup) o;
-        return active == envGroup.active && editable == envGroup.editable &&
-               showAllVariables == envGroup.showAllVariables && order == envGroup.order &&
-               Objects.equals(id, envGroup.id) && Objects.equals(name, envGroup.name) &&
-               Objects.equals(description, envGroup.description) &&
-               Objects.equals(variables, envGroup.variables);
+        return active == envGroup.active && order == envGroup.order && Objects.equals(id, envGroup.id) &&
+               Objects.equals(name, envGroup.name) && Objects.equals(variables, envGroup.variables);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, name, description, active, variables, editable, showAllVariables, order);
+        return Objects.hash(id, name, active, variables, order);
     }
 
     @Override
@@ -124,11 +93,8 @@ public class EnvGroup {
         return new StringJoiner(", ", EnvGroup.class.getSimpleName() + "[", "]")
             .add("id='" + id + "'")
             .add("name='" + name + "'")
-            .add("description='" + description + "'")
             .add("active=" + active)
             .add("variables=" + variables)
-            .add("editable=" + editable)
-            .add("showAllVariables=" + showAllVariables)
             .add("order=" + order)
             .toString();
     }

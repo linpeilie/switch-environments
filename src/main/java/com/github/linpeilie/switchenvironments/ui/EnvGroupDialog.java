@@ -51,7 +51,6 @@ public class EnvGroupDialog extends DialogWrapper {
         EnvGroup copy = new EnvGroup();
         copy.setId(source.getId());
         copy.setName(source.getName());
-        copy.setDescription(source.getDescription());
         copy.setActive(source.isActive());
         copy.setVariables(source.getVariables());
         return copy;

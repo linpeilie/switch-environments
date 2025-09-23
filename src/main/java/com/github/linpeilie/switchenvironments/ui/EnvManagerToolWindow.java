@@ -2,15 +2,20 @@ package com.github.linpeilie.switchenvironments.ui;
 
 import com.github.linpeilie.switchenvironments.model.EnvGroup;
 import com.github.linpeilie.switchenvironments.model.EnvVariable;
-import com.github.linpeilie.switchenvironments.service.EnvGroupService;
 import com.github.linpeilie.switchenvironments.service.EnvManagerService;
-import com.github.linpeilie.switchenvironments.service.EnvVariableService;
 import com.github.linpeilie.switchenvironments.ui.render.SettingsActionGroup;
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.intellij.codeInsight.hint.TooltipController;
 import com.intellij.icons.AllIcons;
-import com.intellij.openapi.actionSystem.*;
+import com.intellij.ide.HelpTooltip;
+import com.intellij.ide.HelpTooltipManager;
+import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.ActionToolbar;
+import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.fileChooser.FileChooser;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.fileChooser.FileChooserFactory;
@@ -21,43 +26,68 @@ import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileWrapper;
-import com.intellij.ui.components.*;
+import com.intellij.ui.components.JBCheckBox;
+import com.intellij.ui.components.JBLabel;
+import com.intellij.ui.components.JBPanel;
+import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.table.JBTable;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
+import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.Cursor;
+import java.awt.Font;
+import java.awt.Rectangle;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.io.File;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.Writer;
-import org.apache.commons.collections.CollectionUtils;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
+import java.util.List;
+import java.util.function.Supplier;
+import javax.swing.BorderFactory;
+import javax.swing.DropMode;
+import javax.swing.Icon;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import javax.swing.JTable;
+import javax.swing.ListSelectionModel;
+import javax.swing.SwingUtilities;
+import javax.swing.TransferHandler;
 import javax.swing.border.Border;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
-import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.io.File;
-import java.io.IOException;
-import java.util.List;
-import java.util.function.Supplier;
+import org.apache.commons.collections.CollectionUtils;
+import org.jetbrains.annotations.NotNull;
 
 public class EnvManagerToolWindow {
+
+    private static final String ALL_VARIABLES_ID = "all_variables";
+
     private final JBPanel mainPanel;
+
     private final JBTable groupTable; // 替换为 JBTable
-    private final JBTable variableTable;
     private final DefaultTableModel groupTableModel; // 替换为 DefaultTableModel
+
+    private final JBTable variableTable;
     private final DefaultTableModel tableModel;
+
     private final EnvManagerService envManagerService;
+
     private final JBLabel variableHeaderLabel;
+
     private final Splitter splitter;
+
     private final Project project;
+
+    private final EnvGroup allVariablesGroup; // 单独存储特殊分组
 
     public EnvManagerToolWindow(Project project) {
         this.project = project;
@@ -117,6 +147,12 @@ public class EnvManagerToolWindow {
         splitter = new Splitter(false, 0.25f);
         splitter.setShowDividerControls(true);
         splitter.setDividerWidth(1);
+
+        // 创建特殊分组
+        allVariablesGroup = new EnvGroup();
+        allVariablesGroup.setId(ALL_VARIABLES_ID);
+        allVariablesGroup.setName("环境变量");
+        allVariablesGroup.setActive(true);
 
         setupUI();
         setupActions();
@@ -204,7 +240,7 @@ public class EnvManagerToolWindow {
                 int checkboxY = cellRect.y + (cellRect.height - checkboxSize) / 2;
                 Rectangle checkboxBounds = new Rectangle(checkboxX, checkboxY, checkboxSize, checkboxSize);
 
-                if (checkboxBounds.contains(e.getPoint()) && !"all_variables".equals(group.getId())) {
+                if (checkboxBounds.contains(e.getPoint()) && !ALL_VARIABLES_ID.equals(group.getId())) {
                     toggleGroupActivation(group);
                     groupTable.repaint(cellRect); // 重绘该行
                 }
@@ -251,13 +287,13 @@ public class EnvManagerToolWindow {
             createAction("Edit Group", "Edit the selected group", AllIcons.Actions.Edit, this::editSelectedGroup,
                 () -> {
                     EnvGroup selected = getSelectedGroup();
-                    return selected != null && !"all_variables".equals(selected.getId());
+                    return selected != null && !ALL_VARIABLES_ID.equals(selected.getId());
                 }));
 
         actionGroup.add(createAction("Delete Group", "Delete the selected group", AllIcons.General.Remove,
             this::deleteSelectedGroup, () -> {
                 EnvGroup selected = getSelectedGroup();
-                return selected != null && !"all_variables".equals(selected.getId());
+                return selected != null && !ALL_VARIABLES_ID.equals(selected.getId());
             }));
 
         // 设置按钮（带下拉菜单）
@@ -290,20 +326,20 @@ public class EnvManagerToolWindow {
             createAction("Add Variable", "Add a new environment variable", AllIcons.General.Add, this::addNewVariable,
                 () -> {
                     EnvGroup selected = getSelectedGroup();
-                    return selected != null && !"all_variables".equals(selected.getId());
+                    return selected != null && !ALL_VARIABLES_ID.equals(selected.getId());
                 }));
 
         actionGroup.add(createAction("Edit Variable", "Edit the selected variable", AllIcons.Actions.Edit,
             this::editSelectedVariable, () -> {
                 EnvGroup selected = getSelectedGroup();
-                return selected != null && !"all_variables".equals(selected.getId()) &&
+                return selected != null && !ALL_VARIABLES_ID.equals(selected.getId()) &&
                        variableTable.getSelectedRow() >= 0;
             }));
 
         actionGroup.add(createAction("Delete Variable", "Delete the selected variable", AllIcons.General.Remove,
             this::deleteSelectedVariable, () -> {
                 EnvGroup selected = getSelectedGroup();
-                return selected != null && !"all_variables".equals(selected.getId()) &&
+                return selected != null && !ALL_VARIABLES_ID.equals(selected.getId()) &&
                        variableTable.getSelectedRow() >= 0;
             }));
 
@@ -313,7 +349,7 @@ public class EnvManagerToolWindow {
             createAction("Import File", "Import variables from file", AllIcons.Actions.Download, this::importFile,
                 () -> {
                     EnvGroup selected = getSelectedGroup();
-                    return selected != null && !"all_variables".equals(selected.getId());
+                    return selected != null && !ALL_VARIABLES_ID.equals(selected.getId());
                 }));
 
         ActionToolbar toolbar =
@@ -357,6 +393,9 @@ public class EnvManagerToolWindow {
     private void refreshGroupList() {
         EnvGroup selectedGroup = getSelectedGroup();
         groupTableModel.setRowCount(0);
+
+        groupTableModel.addRow(new Object[] {allVariablesGroup});
+
         List<EnvGroup> groups = envManagerService.getEnvGroups();
         for (EnvGroup group : groups) {
             groupTableModel.addRow(new Object[] {group});
@@ -378,7 +417,7 @@ public class EnvManagerToolWindow {
         variableHeaderLabel.setText(group.getName());
 
         List<EnvVariable> variables;
-        if ("all_variables".equals(group.getId())) {
+        if (ALL_VARIABLES_ID.equals(group.getId())) {
             variables = envManagerService.getActiveVariables();
         } else {
             variables = envManagerService.getVariablesByGroup(group.getId());
@@ -408,14 +447,14 @@ public class EnvManagerToolWindow {
 
     private void editSelectedGroup() {
         EnvGroup selectedGroup = getSelectedGroup();
-        if (selectedGroup != null && !"all_variables".equals(selectedGroup.getId())) {
+        if (selectedGroup != null && !ALL_VARIABLES_ID.equals(selectedGroup.getId())) {
             showGroupDialog(selectedGroup);
         }
     }
 
     private void deleteSelectedGroup() {
         EnvGroup selectedGroup = getSelectedGroup();
-        if (selectedGroup != null && !"all_variables".equals(selectedGroup.getId())) {
+        if (selectedGroup != null && !ALL_VARIABLES_ID.equals(selectedGroup.getId())) {
             int result = Messages.showYesNoDialog(mainPanel,
                 "Are you sure you want to delete the group '" + selectedGroup.getName() + "'?", "Delete Group",
                 Messages.getQuestionIcon());
@@ -429,7 +468,7 @@ public class EnvManagerToolWindow {
 
     private void addNewVariable() {
         EnvGroup selectedGroup = getSelectedGroup();
-        if (selectedGroup != null && !"all_variables".equals(selectedGroup.getId())) {
+        if (selectedGroup != null && !ALL_VARIABLES_ID.equals(selectedGroup.getId())) {
             showVariableDialog(null, selectedGroup);
         }
     }
@@ -438,7 +477,7 @@ public class EnvManagerToolWindow {
         int selectedRow = variableTable.getSelectedRow();
         EnvGroup selectedGroup = getSelectedGroup();
 
-        if (selectedRow >= 0 && selectedGroup != null && !"all_variables".equals(selectedGroup.getId())) {
+        if (selectedRow >= 0 && selectedGroup != null && !ALL_VARIABLES_ID.equals(selectedGroup.getId())) {
             String varName = (String) tableModel.getValueAt(selectedRow, 0);
             EnvVariable variable = envManagerService.getVariablesByGroup(selectedGroup.getId())
                 .stream()
@@ -455,7 +494,7 @@ public class EnvManagerToolWindow {
         int selectedRow = variableTable.getSelectedRow();
         EnvGroup selectedGroup = getSelectedGroup();
 
-        if (selectedRow >= 0 && selectedGroup != null && !"all_variables".equals(selectedGroup.getId())) {
+        if (selectedRow >= 0 && selectedGroup != null && !ALL_VARIABLES_ID.equals(selectedGroup.getId())) {
             String varName = (String) tableModel.getValueAt(selectedRow, 0);
             int result =
                 Messages.showYesNoDialog(mainPanel, "Are you sure you want to delete the variable '" + varName + "'?",
@@ -491,14 +530,14 @@ public class EnvManagerToolWindow {
 
     private void refreshAllVariablesViewIfNeeded() {
         EnvGroup selectedGroup = getSelectedGroup();
-        if (selectedGroup != null && "all_variables".equals(selectedGroup.getId())) {
+        if (selectedGroup != null && ALL_VARIABLES_ID.equals(selectedGroup.getId())) {
             loadVariablesForGroup(selectedGroup);
         }
     }
 
     private void importFile() {
         EnvGroup selectedGroup = getSelectedGroup();
-        if (selectedGroup == null || "all_variables".equals(selectedGroup.getId())) {
+        if (selectedGroup == null || ALL_VARIABLES_ID.equals(selectedGroup.getId())) {
             Messages.showWarningDialog(mainPanel, "Please select a valid group to import variables into.",
                 "No Group Selected");
             return;
@@ -565,11 +604,21 @@ public class EnvManagerToolWindow {
             }
 
             // 特殊分组隐藏复选框
-            if ("all_variables".equals(group.getId())) {
+            if (ALL_VARIABLES_ID.equals(group.getId())) {
                 checkBox.setVisible(false);
             } else {
                 checkBox.setVisible(true);
                 checkBox.setSelected(group.isActive());
+            }
+
+            // 第一行底部添加分割线
+            if (row == 0) {
+                panel.setBorder(BorderFactory.createCompoundBorder(
+                    BorderFactory.createMatteBorder(1, 0, 1, 0, UIUtil.getBoundsColor()),
+                    JBUI.Borders.empty(4, 8)
+                ));
+            } else {
+                panel.setBorder(JBUI.Borders.empty(4, 8));
             }
 
             return panel;
@@ -640,8 +689,6 @@ public class EnvManagerToolWindow {
             Gson gson = new Gson();
             List<EnvGroup> importedGroups = gson.fromJson(reader, new TypeToken<List<EnvGroup>>() {}.getType());
 
-            importedGroups.removeIf(group -> !group.isEditable());
-
             if (importedGroups.isEmpty()) {
                 Messages.showWarningDialog(mainPanel, "The selected file contains no groups.", "Import");
                 return;
@@ -681,14 +728,10 @@ public class EnvManagerToolWindow {
                 return null;
             }
 
-            // 跳过特殊分组
-            EnvGroup group = (EnvGroup) groupTableModel.getValueAt(sourceRow, 0);
-            if ("all_variables".equals(group.getId())) {
+            // 跳过特殊分组（第一行）
+            if (sourceRow == 0) {
                 return null;
             }
-
-            groupTable.setDragEnabled(true);
-            groupTable.setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
 
             return new StringSelection(String.valueOf(sourceRow));
         }
