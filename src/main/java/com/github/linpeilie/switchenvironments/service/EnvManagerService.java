@@ -137,4 +137,29 @@ public class EnvManagerService {
         }
     }
 
+    public void reorderGroups(int fromIndex, int toIndex) {
+        List<EnvGroup> groups = getEnvGroups();
+
+        if (fromIndex == 0 || toIndex == 0) {
+            return;
+        }
+
+        EnvGroup moved = groups.get(fromIndex);
+        groups.remove(moved);
+        groups.add(toIndex, moved);
+
+        saveGroupsOrder(groups);
+    }
+
+    private void saveGroupsOrder(List<EnvGroup> orderedGroups) {
+        // 这里实现具体存储逻辑，例如：
+        // 1. 更新每个分组的order字段
+        // 2. 将新顺序保存到配置文件
+        // 示例伪代码：
+        for (int i = 0; i < orderedGroups.size(); i++) {
+            orderedGroups.get(i).setOrder(i);
+        }
+        envGroupService.clear();
+        orderedGroups.forEach(envGroupService::addEnvGroup);
+    }
 }

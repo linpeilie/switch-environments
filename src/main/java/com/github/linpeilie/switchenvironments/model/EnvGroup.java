@@ -14,6 +14,7 @@ public class EnvGroup {
     private List<EnvVariable> variables;
     private boolean editable = true;
     private boolean showAllVariables = false;
+    private int order;
 
     public EnvGroup() {
         this.id = UUID.randomUUID().toString();
@@ -92,6 +93,14 @@ public class EnvGroup {
         this.showAllVariables = showAllVariables;
     }
 
+    public int getOrder() {
+        return order;
+    }
+
+    public void setOrder(int order) {
+        this.order = order;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) {
@@ -99,27 +108,28 @@ public class EnvGroup {
         }
         EnvGroup envGroup = (EnvGroup) o;
         return active == envGroup.active && editable == envGroup.editable &&
-               showAllVariables == envGroup.showAllVariables && Objects.equals(id, envGroup.id) &&
-               Objects.equals(name, envGroup.name) &&
+               showAllVariables == envGroup.showAllVariables && order == envGroup.order &&
+               Objects.equals(id, envGroup.id) && Objects.equals(name, envGroup.name) &&
                Objects.equals(description, envGroup.description) &&
                Objects.equals(variables, envGroup.variables);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, name, description, active, variables, editable, showAllVariables);
+        return Objects.hash(id, name, description, active, variables, editable, showAllVariables, order);
     }
 
     @Override
     public String toString() {
         return new StringJoiner(", ", EnvGroup.class.getSimpleName() + "[", "]")
-            .add("active=" + active)
             .add("id='" + id + "'")
             .add("name='" + name + "'")
             .add("description='" + description + "'")
+            .add("active=" + active)
             .add("variables=" + variables)
             .add("editable=" + editable)
             .add("showAllVariables=" + showAllVariables)
+            .add("order=" + order)
             .toString();
     }
 }

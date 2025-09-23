@@ -25,6 +25,9 @@ import com.intellij.ui.components.*;
 import com.intellij.ui.table.JBTable;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.StringSelection;
+import java.awt.datatransfer.Transferable;
 import java.io.FileWriter;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -84,6 +87,10 @@ public class EnvManagerToolWindow {
         groupTable.setDefaultRenderer(Object.class, new GroupTableCellRenderer(this));
         // 设置列宽填满整个面板
         groupTable.getColumnModel().getColumn(0).setCellRenderer(new GroupTableCellRenderer(this));
+
+        groupTable.setDragEnabled(true);
+        groupTable.setDropMode(DropMode.INSERT_ROWS);
+        groupTable.setTransferHandler(new GroupRowTransferHandler());
 
         // 创建表格用于变量
         String[] columnNames = {"Name", "Value"};
@@ -655,6 +662,87 @@ public class EnvManagerToolWindow {
                 "Import");
         } catch (Exception e) {
             Messages.showErrorDialog(mainPanel, "Import failed: " + e.getMessage(), "Error");
+        }
+    }
+
+    // 内部类 - 处理拖拽逻辑
+    private class GroupRowTransferHandler extends TransferHandler {
+        private int sourceRow = -1;
+
+        @Override
+        public int getSourceActions(JComponent c) {
+            return MOVE;
+        }
+
+        @Override
+        protected Transferable createTransferable(JComponent c) {
+            sourceRow = groupTable.getSelectedRow();
+            if (sourceRow < 0 || sourceRow >= groupTableModel.getRowCount()) {
+                return null;
+            }
+
+            // 跳过特殊分组
+            EnvGroup group = (EnvGroup) groupTableModel.getValueAt(sourceRow, 0);
+            if ("all_variables".equals(group.getId())) {
+                return null;
+            }
+
+            groupTable.setDragEnabled(true);
+            groupTable.setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
+
+            return new StringSelection(String.valueOf(sourceRow));
+        }
+
+        @Override
+        public boolean canImport(TransferHandler.TransferSupport support) {
+            return support.isDataFlavorSupported(DataFlavor.stringFlavor) &&
+                   support.getComponent() == groupTable;
+        }
+
+        @Override
+        protected void exportDone(JComponent source, Transferable data, int action) {
+            sourceRow = -1;
+            groupTable.setCursor(Cursor.getDefaultCursor());
+            groupTable.repaint();
+        }
+
+        @Override
+        public boolean importData(TransferHandler.TransferSupport support) {
+            if (!canImport(support)) {
+                return false;
+            }
+
+            try {
+                JTable.DropLocation dl = (JTable.DropLocation) support.getDropLocation();
+                int targetRow = dl.getRow();
+
+                // 目标行不能是第一行
+                if (targetRow <= 0) {
+                    return false;
+                }
+
+                // 调整索引：如果源行在目标行之前，移除源行后目标行会前移
+                if (sourceRow < targetRow) {
+                    targetRow--;
+                }
+
+                // 获取原始行数据
+                EnvGroup movedGroup = (EnvGroup) groupTableModel.getValueAt(sourceRow, 0);
+
+                // 更新数据模型
+                groupTableModel.removeRow(sourceRow);
+                groupTableModel.insertRow(targetRow, new Object[] {movedGroup});
+
+                // 更新服务层顺序
+                envManagerService.reorderGroups(sourceRow, targetRow);
+
+                // 刷新UI
+                groupTable.setRowSelectionInterval(targetRow, targetRow);
+                return true;
+            } catch (Exception e) {
+                e.printStackTrace();
+                return false;
+            }
         }
     }
 
