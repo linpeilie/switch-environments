@@ -1,7 +1,7 @@
-package com.github.linpeilie.switchenvironments.service;
+package cn.easii.plugin.switchenvironments.service;
 
-import com.github.linpeilie.switchenvironments.model.EnvGroup;
-import com.github.linpeilie.switchenvironments.model.EnvVariable;
+import cn.easii.plugin.switchenvironments.model.EnvGroup;
+import cn.easii.plugin.switchenvironments.model.EnvVariable;
 import com.intellij.openapi.project.Project;
 import java.io.BufferedReader;
 import java.io.File;

@@ -1,16 +1,13 @@
-package com.github.linpeilie.switchenvironments.ui;
+package cn.easii.plugin.switchenvironments.ui;
 
-import com.github.linpeilie.switchenvironments.model.EnvGroup;
-import com.github.linpeilie.switchenvironments.model.EnvVariable;
-import com.github.linpeilie.switchenvironments.service.EnvManagerService;
-import com.github.linpeilie.switchenvironments.ui.render.SettingsActionGroup;
+import cn.easii.plugin.switchenvironments.model.EnvGroup;
+import cn.easii.plugin.switchenvironments.model.EnvVariable;
+import cn.easii.plugin.switchenvironments.service.EnvManagerService;
+import cn.easii.plugin.switchenvironments.ui.render.SettingsActionGroup;
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.intellij.codeInsight.hint.TooltipController;
 import com.intellij.icons.AllIcons;
-import com.intellij.ide.HelpTooltip;
-import com.intellij.ide.HelpTooltipManager;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.AnAction;

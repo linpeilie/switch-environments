@@ -1,4 +1,4 @@
-package com.github.linpeilie.switchenvironments.action;
+package cn.easii.plugin.switchenvironments.action;
 
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;

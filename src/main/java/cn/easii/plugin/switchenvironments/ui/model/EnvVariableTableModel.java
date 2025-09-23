@@ -1,13 +1,10 @@
-package com.github.linpeilie.switchenvironments.ui.model;
+package cn.easii.plugin.switchenvironments.ui.model;
 
-import com.github.linpeilie.switchenvironments.model.EnvVariable;
-import com.intellij.ui.BooleanTableCellRenderer;
-import com.intellij.ui.table.JBTable;
+import cn.easii.plugin.switchenvironments.model.EnvVariable;
 
 import javax.swing.*;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
-import javax.swing.table.TableCellRenderer;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;

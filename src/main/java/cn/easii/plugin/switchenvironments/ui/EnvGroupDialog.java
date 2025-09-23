@@ -1,7 +1,7 @@
-package com.github.linpeilie.switchenvironments.ui;
+package cn.easii.plugin.switchenvironments.ui;
 
-import com.github.linpeilie.switchenvironments.model.EnvGroup;
-import com.github.linpeilie.switchenvironments.service.EnvManagerService;
+import cn.easii.plugin.switchenvironments.model.EnvGroup;
+import cn.easii.plugin.switchenvironments.service.EnvManagerService;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBLabel;

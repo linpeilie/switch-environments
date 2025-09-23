@@ -1,4 +1,4 @@
-package com.github.linpeilie.switchenvironments.ui;
+package cn.easii.plugin.switchenvironments.ui;
 
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;

@@ -1,6 +1,6 @@
-package com.github.linpeilie.switchenvironments.service;
+package cn.easii.plugin.switchenvironments.service;
 
-import com.github.linpeilie.switchenvironments.model.EnvVariable;
+import cn.easii.plugin.switchenvironments.model.EnvVariable;
 import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.components.Service;
 import com.intellij.openapi.components.State;

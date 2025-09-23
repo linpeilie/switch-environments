@@ -1,4 +1,4 @@
-package com.github.linpeilie.switchenvironments.model;
+package cn.easii.plugin.switchenvironments.model;
 
 import java.util.ArrayList;
 import java.util.List;

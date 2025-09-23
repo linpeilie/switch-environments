@@ -1,4 +1,4 @@
-package com.github.linpeilie.switchenvironments.ui.render;
+package cn.easii.plugin.switchenvironments.ui.render;
 
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
