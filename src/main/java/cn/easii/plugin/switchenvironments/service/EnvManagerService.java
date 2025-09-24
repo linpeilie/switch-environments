@@ -140,9 +140,9 @@ public class EnvManagerService {
     public void reorderGroups(int fromIndex, int toIndex) {
         List<EnvGroup> groups = getEnvGroups();
 
-        EnvGroup moved = groups.get(fromIndex);
+        EnvGroup moved = groups.get(fromIndex - 1);
         groups.remove(moved);
-        groups.add(toIndex, moved);
+        groups.add(toIndex - 1, moved);
 
         saveGroupsOrder(groups);
     }

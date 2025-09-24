@@ -33,6 +33,7 @@ public final class EnvGroupService implements PersistentStateComponent<EnvGroupS
 
     void addEnvGroup(EnvGroup envGroup) {
         envGroups.removeIf(group -> group.getId().equals(envGroup.getId()));
+        envGroup.setOrder(envGroups.size() + 1);
         envGroups.add(envGroup);
     }
 
