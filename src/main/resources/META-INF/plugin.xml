@@ -1,8 +1,8 @@
 <idea-plugin>
-    <id>com.example.envmanager</id>
+    <id>cn.easii.plugin.switchenvironments</id>
     <name>Environment Variables Manager</name>
     <version>1.0.0</version>
-    <vendor email="support@example.com" url="http://www.example.com">Example</vendor>
+    <vendor email="linpeilie@qq.com" url="https://github.com/linpeilie">Linpeilie</vendor>
 
     <description><![CDATA[
     A powerful environment variables management plugin for IntelliJ IDEA.
@@ -19,11 +19,9 @@
     <depends>com.intellij.java</depends>
 
     <extensions defaultExtensionNs="com.intellij">
-        <!-- TODO: 图标-->
-        <!--        <toolWindow id="Environment Variables" secondary="true" icon="/icons/env_icon.png"-->
-        <!--                    anchor="right" factoryClass="com.example.envmanager.ui.EnvManagerToolWindowFactory"/>-->
         <toolWindow id="Environment Variables" secondary="true"
                     anchor="right"
+                    icon="/icons/toolWindowIcon.svg"
                     factoryClass="cn.easii.plugin.switchenvironments.ui.EnvManagerToolWindowFactory"/>
 
         <applicationService serviceImplementation="cn.easii.plugin.switchenvironments.service.EnvVariableService"/>
