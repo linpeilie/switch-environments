@@ -141,9 +141,9 @@ public class EnvManagerToolWindow {
         variableHeaderLabel.setFont(JBUI.Fonts.label().deriveFont(Font.BOLD));
         variableHeaderLabel.setForeground(UIUtil.getLabelForeground());
 
-        splitter = new Splitter(false, 0.25f);
+        splitter = new Splitter(false, 0.3f);
         splitter.setShowDividerControls(true);
-        splitter.setDividerWidth(1);
+        splitter.setDividerWidth(2);
 
         // 创建特殊分组
         allVariablesGroup = new EnvGroup();
