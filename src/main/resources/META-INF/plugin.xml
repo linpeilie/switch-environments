@@ -4,15 +4,6 @@
     <version>1.0.0</version>
     <vendor email="linpeilie@qq.com" url="https://github.com/linpeilie">Linpeilie</vendor>
 
-    <description><![CDATA[
-    A powerful environment variables management plugin for IntelliJ IDEA.
-    Features:
-    - Create, edit, and delete environment variables
-    - Import environment variables from .env files
-    - Group management with activation/deactivation
-    - Beautiful and intuitive UI
-    ]]></description>
-
     <idea-version since-build="203"/>
 
     <depends>com.intellij.modules.platform</depends>
@@ -23,9 +14,6 @@
                     anchor="right"
                     icon="/icons/toolWindowIcon.svg"
                     factoryClass="cn.easii.plugin.switchenvironments.ui.EnvManagerToolWindowFactory"/>
-
-        <applicationService serviceImplementation="cn.easii.plugin.switchenvironments.service.EnvVariableService"/>
-        <applicationService serviceImplementation="cn.easii.plugin.switchenvironments.service.EnvGroupService"/>
 
         <runConfigurationExtension implementation="cn.easii.plugin.switchenvironments.EnvironmentInjector"/>
     </extensions>

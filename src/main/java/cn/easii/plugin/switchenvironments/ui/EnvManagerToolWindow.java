@@ -89,7 +89,7 @@ public class EnvManagerToolWindow {
     public EnvManagerToolWindow(Project project) {
         this.project = project;
 
-        envManagerService = new EnvManagerService(project);
+        envManagerService = project.getService(EnvManagerService.class);
 
         mainPanel = new JBPanel<>(new BorderLayout());
         mainPanel.setBackground(UIUtil.getPanelBackground());
@@ -693,12 +693,7 @@ public class EnvManagerToolWindow {
 
             // 先清空，再导入
             envManagerService.clearAllData();
-            importedGroups.forEach(group -> {
-                envManagerService.addEnvGroup(group);
-                if (CollectionUtils.isNotEmpty(group.getVariables())) {
-                    group.getVariables().forEach(envManagerService::addEnvVariable);
-                }
-            });
+            importedGroups.forEach(envManagerService::addEnvGroup);
 
             refreshGroupList();
             refreshAllVariablesViewIfNeeded();

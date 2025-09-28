@@ -22,7 +22,7 @@ public class EnvironmentInjector extends RunConfigurationExtension {
         @NotNull JavaParameters params,
         @Nullable RunnerSettings runnerSettings) throws ExecutionException {
         if (configuration instanceof RunConfigurationBase) {
-            EnvManagerService envManagerService = new EnvManagerService(configuration.getProject());
+            EnvManagerService envManagerService = configuration.getProject().getService(EnvManagerService.class);
 
             List<EnvVariable> activeVariables = envManagerService.getActiveVariables();
 
