@@ -2,6 +2,9 @@
 
 # switch-environments Changelog
 
-## [Unreleased]
-### Added
-- Initial scaffold created from [IntelliJ Platform Plugin Template](https://github.com/JetBrains/intellij-platform-plugin-template)
+## 0.0.6
+
+- Initial release
+- Group management functionality
+- Variable CRUD operations
+- Import/export

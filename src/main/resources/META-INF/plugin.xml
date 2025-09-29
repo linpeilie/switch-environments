@@ -1,15 +1,30 @@
-<!-- Plugin Configuration File. Read more: https://plugins.jetbrains.com/docs/intellij/plugin-configuration-file.html -->
 <idea-plugin>
-    <id>com.github.linpeilie.switchenvironments</id>
-    <name>switch-environments</name>
-    <vendor>linpeilie</vendor>
+    <id>cn.easii.plugin.switchenvironments</id>
+    <name>Environment Variables Manager</name>
+    <version>1.0.0</version>
+    <vendor email="linpeilie@qq.com" url="https://github.com/linpeilie">Linpeilie</vendor>
+
+    <idea-version since-build="203"/>
 
     <depends>com.intellij.modules.platform</depends>
-
-    <resource-bundle>messages.MyBundle</resource-bundle>
+    <depends>com.intellij.java</depends>
 
     <extensions defaultExtensionNs="com.intellij">
-        <toolWindow factoryClass="com.github.linpeilie.switchenvironments.toolWindow.MyToolWindowFactory" id="MyToolWindow"/>
-        <postStartupActivity implementation="com.github.linpeilie.switchenvironments.startup.MyProjectActivity" />
+        <toolWindow id="Environment Variables" secondary="true"
+                    anchor="right"
+                    icon="/icons/toolWindowIcon.svg"
+                    factoryClass="cn.easii.plugin.switchenvironments.ui.EnvManagerToolWindowFactory"/>
+
+        <runConfigurationExtension implementation="cn.easii.plugin.switchenvironments.EnvironmentInjector"/>
     </extensions>
+
+    <actions>
+        <group id="EnvManagerGroup" text="Environment Variables" description="Environment Variables Management">
+            <add-to-group group-id="ToolsMenu" anchor="last"/>
+            <action id="cn.easii.plugin.switchenvironments.action.OpenEnvManagerAction"
+                    class="cn.easii.plugin.switchenvironments.action.OpenEnvManagerAction"
+                    text="Open Environment Manager"
+                    description="Open Environment Variables Manager"/>
+        </group>
+    </actions>
 </idea-plugin>

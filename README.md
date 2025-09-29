@@ -1,42 +1,35 @@
 # switch-environments
 
 ![Build](https://github.com/linpeilie/switch-environments/workflows/Build/badge.svg)
-[![Version](https://img.shields.io/jetbrains/plugin/v/MARKETPLACE_ID.svg)](https://plugins.jetbrains.com/plugin/MARKETPLACE_ID)
-[![Downloads](https://img.shields.io/jetbrains/plugin/d/MARKETPLACE_ID.svg)](https://plugins.jetbrains.com/plugin/MARKETPLACE_ID)
-
-## Template ToDo list
-- [x] Create a new [IntelliJ Platform Plugin Template][template] project.
-- [ ] Get familiar with the [template documentation][template].
-- [ ] Adjust the [pluginGroup](./gradle.properties) and [pluginName](./gradle.properties), as well as the [id](./src/main/resources/META-INF/plugin.xml) and [sources package](./src/main/kotlin).
-- [ ] Adjust the plugin description in `README` (see [Tips][docs:plugin-description])
-- [ ] Review the [Legal Agreements](https://plugins.jetbrains.com/docs/marketplace/legal-agreements.html?from=IJPluginTemplate).
-- [ ] [Publish a plugin manually](https://plugins.jetbrains.com/docs/intellij/publishing-plugin.html?from=IJPluginTemplate) for the first time.
-- [ ] Set the `MARKETPLACE_ID` in the above README badges. You can obtain it once the plugin is published to JetBrains Marketplace.
-- [ ] Set the [Plugin Signing](https://plugins.jetbrains.com/docs/intellij/plugin-signing.html?from=IJPluginTemplate) related [secrets](https://github.com/JetBrains/intellij-platform-plugin-template#environment-variables).
-- [ ] Set the [Deployment Token](https://plugins.jetbrains.com/docs/marketplace/plugin-upload.html?from=IJPluginTemplate).
-- [ ] Click the <kbd>Watch</kbd> button on the top of the [IntelliJ Platform Plugin Template][template] to be notified about releases containing new features and fixes.
-- [ ] Configure the [CODECOV_TOKEN](https://docs.codecov.com/docs/quick-start) secret for automated test coverage reports on PRs
+[![Version](https://img.shields.io/jetbrains/plugin/v/28559-switchenvironments.svg)](https://plugins.jetbrains.com/plugin/28559-switchenvironments)
+[![Downloads](https://img.shields.io/jetbrains/plugin/d/28559-switchenvironments.svg)](https://plugins.jetbrains.com/plugin/28559-switchenvironments)
 
 <!-- Plugin description -->
-This Fancy IntelliJ Platform Plugin is going to be your implementation of the brilliant ideas that you have.
 
-This specific section is a source for the [plugin.xml](/src/main/resources/META-INF/plugin.xml) file which will be extracted by the [Gradle](/build.gradle.kts) during the build process.
+**A powerful IntelliJ IDEA plugin for managing environment variables with group support and beautiful UI.**
 
-To keep everything working, do not remove `<!-- ... -->` sections. 
-<!-- Plugin description end -->
+## Features
+
+- 🗂️ **Group Management**: Organize environment variables into logical groups
+- ✅ **Group Activation Control**: Enable/disable entire groups
+- 📥 **Multi-format Import**: Import variables from .env, .properties, and .txt files
+- 🎨 **Clean UI**: Modern list and table interface
+- 💾 **Persistent Storage**: All settings are saved automatically
+- 🔧 **Easy Management**: Add, edit, and delete variables with simple dialogs
+- 🌍 **Global View**: Special first group shows all active variables
 
 ## Installation
 
 - Using the IDE built-in plugin system:
   
-  <kbd>Settings/Preferences</kbd> > <kbd>Plugins</kbd> > <kbd>Marketplace</kbd> > <kbd>Search for "switch-environments"</kbd> >
+  <kbd>Settings/Preferences</kbd> > <kbd>Plugins</kbd> > <kbd>Marketplace</kbd> > <kbd>Search for "SwitchEnvironments"</kbd> >
   <kbd>Install</kbd>
   
 - Using JetBrains Marketplace:
 
-  Go to [JetBrains Marketplace](https://plugins.jetbrains.com/plugin/MARKETPLACE_ID) and install it by clicking the <kbd>Install to ...</kbd> button in case your IDE is running.
+  Go to [JetBrains Marketplace](https://plugins.jetbrains.com/plugin/28559-switchenvironments) and install it by clicking the <kbd>Install to ...</kbd> button in case your IDE is running.
 
-  You can also download the [latest release](https://plugins.jetbrains.com/plugin/MARKETPLACE_ID/versions) from JetBrains Marketplace and install it manually using
+  You can also download the [latest release](https://plugins.jetbrains.com/plugin/28559-switchenvironments/versions) from JetBrains Marketplace and install it manually using
   <kbd>Settings/Preferences</kbd> > <kbd>Plugins</kbd> > <kbd>⚙️</kbd> > <kbd>Install plugin from disk...</kbd>
 
 - Manually:
@@ -44,9 +37,114 @@ To keep everything working, do not remove `<!-- ... -->` sections.
   Download the [latest release](https://github.com/linpeilie/switch-environments/releases/latest) and install it manually using
   <kbd>Settings/Preferences</kbd> > <kbd>Plugins</kbd> > <kbd>⚙️</kbd> > <kbd>Install plugin from disk...</kbd>
 
+## Usage
 
----
-Plugin based on the [IntelliJ Platform Plugin Template][template].
+### Accessing the Plugin
 
-[template]: https://github.com/JetBrains/intellij-platform-plugin-template
-[docs:plugin-description]: https://plugins.jetbrains.com/docs/intellij/plugin-user-experience.html#plugin-description-and-presentation
+- Tool Window: View → Tool Windows → Environment Variables
+- Menu: Tools → Environment Variables → Open Environment Manager
+
+### Managing Groups
+
+1. **Add Group**: Click the "+" button in the group toolbar
+2. **Edit Group**: Select a group and click the edit button
+3. **Delete Group**: Select a group and click the "-" button
+4. **Activate/Deactivate**: Use checkboxes in settings or edit group dialog
+5. **Import/Export**: Click the "⚙️" button in the group toolbar
+6. **Sort**: Long-press and drag with the left mouse button to move it
+
+### Built-in Groups
+
+- **Env**：Read-only view of all active variables from enabled groups
+
+### Managing Variables
+
+1. **Add Variable**: Select a group (not built-in groups), then click "+" in the variables toolbar
+2. **Edit Variable**: Double-click a variable or select and click edit button
+3. **Delete Variable**: Select a variable and click "-" button
+4. Variables are automatically active when their group is active
+5. **Import**: Select a group (not built-in groups), then click "Import File" button
+
+### Import Support
+
+#### Import Config
+
+The plugin supports exporting all data as well as importing that data.
+
+#### Import Variables
+
+The plugin supports multiple file formats:
+
+- `.env` **files**: Standard environment file format
+- `.properties` **files**: Java properties format with escape sequence support
+- `.txt` **files**: Simple key=value format
+
+##### Supported File Formats
+
+- **.env files**:
+
+```env
+# This is a comment
+DATABASE_URL=postgresql://localhost:5432/mydb
+API_KEY=your_secret_key_here
+DEBUG=true
+APP_NAME="My Application"
+```
+
+- **.properties files**:
+
+```properties
+# Properties format
+database.url=postgresql://localhost:5432/mydb
+api.key=your_secret_key_here
+debug=true
+app.name=My Application
+```
+
+- **.txt files**:
+
+```text
+DATABASE_URL=postgresql://localhost:5432/mydb
+API_KEY# Environment Variables Manager Plugin
+
+A powerful IntelliJ IDEA plugin for managing environment variables with group support and beautiful UI.
+
+## Features
+
+- 🗂️ **Group Management**: Organize environment variables into logical groups
+- ✅ **Activation Control**: Enable/disable entire groups or individual variables
+- 📥 **Import Support**: Import variables from `.env` files
+- 📤 **Export Support**: Export variables to `.env` files
+- 🎨 **Beautiful UI**: Modern and intuitive user interface
+- 💾 **Persistent Storage**: All settings are saved automatically
+- 🔧 **Easy Management**: Add, edit, and delete variables with simple dialogs
+
+## Installation
+
+1. Clone this repository
+2. Open the project in IntelliJ IDEA
+3. Run `./gradlew buildPlugin` to build the plugin
+4. Install the generated plugin file from `build/distributions/`
+
+Or build and run directly:
+```bash
+./gradlew runIde
+```
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests if applicable
+5. Submit a pull request
+
+## License
+
+[Apache 2.0 License](https://raw.githubusercontent.com/linpeilie/switch-environments/master/LICENSE)
+
+## Donation
+
+If you like this plugin, you can [buy me a cup of coffee](https://afdian.com/a/linpeilie). Thank you!
+
+<!-- Plugin description end -->
