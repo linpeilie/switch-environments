@@ -5,38 +5,18 @@
 [![Downloads](https://img.shields.io/jetbrains/plugin/d/28559-switchenvironments.svg)](https://plugins.jetbrains.com/plugin/28559-switchenvironments)
 
 <!-- Plugin description -->
-**A powerful IntelliJ IDEA plugin for managing environment variables with group support and beautiful UI.**
-
-### Features
-
-- 🗂️ Group Management: Organize environment variables into logical groups
-- ✅ Group Activation Control: Enable/disable entire groups
-- 📥 Multi-format Import: Import variables from .env, .properties, and .txt files
-- 🎨 Clean UI: Modern list and table interface
-- 💾 Persistent Storage: All settings are saved automatically
-- 🔧 Easy Management: Add, edit, and delete variables with simple dialogs
-- 🌍 Global View: Special first group shows all active variables
-
-## License
-
-[Apache 2.0 License](https://raw.githubusercontent.com/linpeilie/switch-environments/master/LICENSE)
-
-## Donation
-
-If you like this plugin, you can [buy me a cup of coffee](https://afdian.com/a/linpeilie). Thank you!
-<!-- Plugin description end -->
 
 **A powerful IntelliJ IDEA plugin for managing environment variables with group support and beautiful UI.**
 
 ## Features
 
-- 🗂️ Group Management: Organize environment variables into logical groups
-- ✅ Group Activation Control: Enable/disable entire groups
-- 📥 Multi-format Import: Import variables from .env, .properties, and .txt files
-- 🎨 Clean UI: Modern list and table interface
-- 💾 Persistent Storage: All settings are saved automatically
-- 🔧 Easy Management: Add, edit, and delete variables with simple dialogs
-- 🌍 Global View: Special first group shows all active variables
+- 🗂️ **Group Management**: Organize environment variables into logical groups
+- ✅ **Group Activation Control**: Enable/disable entire groups
+- 📥 **Multi-format Import**: Import variables from .env, .properties, and .txt files
+- 🎨 **Clean UI**: Modern list and table interface
+- 💾 **Persistent Storage**: All settings are saved automatically
+- 🔧 **Easy Management**: Add, edit, and delete variables with simple dialogs
+- 🌍 **Global View**: Special first group shows all active variables
 
 ## Installation
 
@@ -166,3 +146,5 @@ Or build and run directly:
 ## Donation
 
 If you like this plugin, you can [buy me a cup of coffee](https://afdian.com/a/linpeilie). Thank you!
+
+<!-- Plugin description end -->
