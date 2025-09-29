@@ -295,13 +295,13 @@ public class EnvManagerToolWindow {
 
         // 设置按钮（带下拉菜单）
         DefaultActionGroup settingsGroup = new SettingsActionGroup(); // true = popup
-        settingsGroup.add(new AnAction("Import Config", "Import configuration", AllIcons.Actions.Download) {
+        settingsGroup.add(new AnAction("Import Config", "Import configuration", AllIcons.ToolbarDecorator.Import) {
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
                 importConfig();
             }
         });
-        settingsGroup.add(new AnAction("Export Config", "Export configuration", AllIcons.Actions.Upload) {
+        settingsGroup.add(new AnAction("Export Config", "Export configuration", AllIcons.ToolbarDecorator.Export) {
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
                 exportConfig();
@@ -343,7 +343,7 @@ public class EnvManagerToolWindow {
         actionGroup.addSeparator();
 
         actionGroup.add(
-            createAction("Import File", "Import variables from file", AllIcons.Actions.Download, this::importFile,
+            createAction("Import File", "Import variables from file", AllIcons.ToolbarDecorator.Import, this::importFile,
                 () -> {
                     EnvGroup selected = getSelectedGroup();
                     return selected != null && !ALL_VARIABLES_ID.equals(selected.getId());

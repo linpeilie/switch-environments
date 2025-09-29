@@ -2,11 +2,9 @@
 
 # switch-environments Changelog
 
-## 0.0.5
+## 0.0.6
 
-- Redesign the logo
-- Optimize the page
-
-## 0.0.4
-
-- Improve the basic function of the project
+- Initial release
+- Group management functionality
+- Variable CRUD operations
+- Import/export
