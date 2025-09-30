@@ -18,6 +18,8 @@
 - 🔧 **Easy Management**: Add, edit, and delete variables with simple dialogs
 - 🌍 **Global View**: Special first group shows all active variables
 
+<!-- Plugin description end -->
+
 ## Installation
 
 - Using the IDE built-in plugin system:
@@ -146,5 +148,3 @@ Or build and run directly:
 ## Donation
 
 If you like this plugin, you can [buy me a cup of coffee](https://afdian.com/a/linpeilie). Thank you!
-
-<!-- Plugin description end -->

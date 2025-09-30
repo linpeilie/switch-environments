@@ -169,7 +169,7 @@ public class EnvManagerToolWindow {
     private JBPanel createGroupPanel() {
         JBPanel panel = new JBPanel<>(new BorderLayout());
         panel.setBackground(UIUtil.getPanelBackground());
-        panel.setBorder(createTitledBorder("Groups"));
+        panel.setBorder(JBUI.Borders.empty());
 
         ActionToolbar toolbar = createGroupToolbar();
         panel.add(toolbar.getComponent(), BorderLayout.NORTH);
@@ -199,14 +199,10 @@ public class EnvManagerToolWindow {
         panel.add(headerPanel, BorderLayout.NORTH);
 
         JBScrollPane scrollPane = new JBScrollPane(variableTable);
-        scrollPane.setBorder(createTitledBorder(""));
+        scrollPane.setBorder(JBUI.Borders.empty());
         panel.add(scrollPane, BorderLayout.CENTER);
 
         return panel;
-    }
-
-    private Border createTitledBorder(String title) {
-        return JBUI.Borders.customLine(UIUtil.getWindowColor(), 1, 1, 1, 1);
     }
 
     private void setupActions() {
