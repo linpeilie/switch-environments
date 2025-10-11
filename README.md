@@ -39,6 +39,7 @@
   Download the [latest release](https://github.com/linpeilie/switch-environments/releases/latest) and install it manually using
   <kbd>Settings/Preferences</kbd> > <kbd>Plugins</kbd> > <kbd>⚙️</kbd> > <kbd>Install plugin from disk...</kbd>
 
+<!-- Plugin description -->
 ## Usage
 
 ### Accessing the Plugin
@@ -133,6 +134,8 @@ Or build and run directly:
 ./gradlew runIde
 ```
 
+<!-- Plugin description end -->
+
 ## Contributing
 
 1. Fork the repository
@@ -141,6 +144,8 @@ Or build and run directly:
 4. Add tests if applicable
 5. Submit a pull request
 
+<!-- Plugin description -->
+
 ## License
 
 [Apache 2.0 License](https://raw.githubusercontent.com/linpeilie/switch-environments/master/LICENSE)
@@ -148,3 +153,5 @@ Or build and run directly:
 ## Donation
 
 If you like this plugin, you can [buy me a cup of coffee](https://afdian.com/a/linpeilie). Thank you!
+
+<!-- Plugin description end -->
