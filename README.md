@@ -68,6 +68,8 @@
 4. Variables are automatically active when their group is active
 5. **Import**: Select a group (not built-in groups), then click "Import File" button
 
+<!-- Plugin description end -->
+
 ### Import Support
 
 #### Import Config
@@ -133,8 +135,6 @@ Or build and run directly:
 ```bash
 ./gradlew runIde
 ```
-
-<!-- Plugin description end -->
 
 ## Contributing
 
