@@ -13,10 +13,10 @@
 - 🗂️ **Group Management**: Organize environment variables into logical groups
 - ✅ **Group Activation Control**: Enable/disable entire groups
 - 📥 **Multi-format Import**: Import variables from .env, .properties, and .txt files
-- 🎨 **Clean UI**: Modern list and table interface
 - 💾 **Persistent Storage**: All settings are saved automatically
 - 🔧 **Easy Management**: Add, edit, and delete variables with simple dialogs
 - 🌍 **Global View**: Special first group shows all active variables
+- 📚 **Project Isolation**: data is isolated between different projects and does not affect each other
 
 <!-- Plugin description end -->
 
