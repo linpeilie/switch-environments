@@ -170,6 +170,10 @@ public final class EnvManagerService implements PersistentStateComponent<EnvMana
                             key = key.substring(7)
                                     .trim();
                         }
+                        else{
+                            // Skip lines that do not start with export in .sh files
+                            continue;
+                        }
                     }
 
                     EnvVariable envVar = new EnvVariable(key, value, targetGroupId);
