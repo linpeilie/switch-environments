@@ -165,6 +165,13 @@ public final class EnvManagerService implements PersistentStateComponent<EnvMana
                             .replace("\\!", "!");
                     }
 
+                    if (fileName.endsWith(".sh")) {
+                        if (key.startsWith("export ") || key.startsWith("EXPORT ")) {
+                            key = key.substring(7)
+                                    .trim();
+                        }
+                    }
+
                     EnvVariable envVar = new EnvVariable(key, value, targetGroupId);
                     importedVars.add(envVar);
                 }
