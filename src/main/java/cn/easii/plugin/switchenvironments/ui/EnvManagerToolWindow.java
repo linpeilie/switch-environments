@@ -538,10 +538,10 @@ public class EnvManagerToolWindow {
 
         FileChooserDescriptor descriptor = new FileChooserDescriptor(true, false, false, false, false, false);
         descriptor.setTitle("Import Environment Variables");
-        descriptor.setDescription("Select a .env, .properties, or .txt file to import environment variables");
+        descriptor.setDescription("Select a file(.env,.properties,.txt,.sh) to import environment variables");
         descriptor.withFileFilter(file -> {
             String name = file.getName().toLowerCase();
-            return name.endsWith(".env") || name.endsWith(".properties") || name.endsWith(".txt");
+            return name.endsWith(".env") || name.endsWith(".properties") || name.endsWith(".txt") || name.endsWith(".sh");
         });
 
         VirtualFile file = FileChooser.chooseFile(descriptor, null, null);
