@@ -206,7 +206,5 @@ public final class EnvManagerService implements PersistentStateComponent<EnvMana
         for (int i = 0; i < orderedGroups.size(); i++) {
             orderedGroups.get(i).setOrder(i);
         }
-        clearAllData();
-        orderedGroups.forEach(this::addEnvGroup);
     }
 }

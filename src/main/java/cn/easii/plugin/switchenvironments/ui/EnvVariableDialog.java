@@ -8,6 +8,7 @@ import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBTextField;
 import com.intellij.util.ui.FormBuilder;
 import com.intellij.util.ui.JBUI;
+import java.awt.BorderLayout;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import org.jetbrains.annotations.Nullable;
@@ -54,9 +55,15 @@ public class EnvVariableDialog extends DialogWrapper {
 
     @Override
     protected @Nullable JComponent createCenterPanel() {
+        JPanel nameFieldPanel = new JPanel(new BorderLayout());
+        nameFieldPanel.add(nameField, BorderLayout.CENTER);
+
+        JPanel valueFieldPanel = new JPanel(new BorderLayout());
+        valueFieldPanel.add(valueField, BorderLayout.CENTER);
+
         JPanel panel = FormBuilder.createFormBuilder()
-            .addLabeledComponent(new JBLabel("Name:"), nameField, true)
-            .addLabeledComponent(new JBLabel("Value:"), valueField, true)
+            .addLabeledComponent(new JBLabel("Name:"), nameFieldPanel, true)
+            .addLabeledComponent(new JBLabel("Value:"), valueFieldPanel, true)
             .addComponentFillVertically(new JPanel(), 0)
             .getPanel();
 

@@ -5,9 +5,11 @@ import cn.easii.plugin.switchenvironments.service.EnvManagerService;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBTextField;
 import com.intellij.util.ui.FormBuilder;
 import com.intellij.util.ui.JBUI;
+import java.awt.BorderLayout;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import org.jetbrains.annotations.Nullable;
@@ -24,7 +26,7 @@ public class EnvGroupDialog extends DialogWrapper {
         this.envManagerService = envManagerService;
         this.group = group != null ? copyGroup(group) : new EnvGroup();
 
-        nameField = new JBTextField(20);
+        nameField = new JBTextField(30);
         activeCheckBox = new JBCheckBox("Active");
 
         setTitle(group == null ? "Add Environment Group" : "Edit Environment Group");
@@ -58,8 +60,11 @@ public class EnvGroupDialog extends DialogWrapper {
 
     @Override
     protected @Nullable JComponent createCenterPanel() {
+        JPanel nameFieldPanel = new JPanel(new BorderLayout());
+        nameFieldPanel.add(nameField, BorderLayout.CENTER);
+
         JPanel panel = FormBuilder.createFormBuilder()
-            .addLabeledComponent(new JBLabel("Name:"), nameField, true)
+            .addLabeledComponent(new JBLabel("Name:"), nameFieldPanel, true)
             .addComponent(activeCheckBox)
             .addComponentFillVertically(new JPanel(), 0)
             .getPanel();
