@@ -34,6 +34,7 @@ public class EnvVariableDialog extends DialogWrapper {
 
         if (variable != null) {
             nameField.setText(variable.getName());
+            nameField.setEnabled(false);
             valueField.setText(variable.getValue());
         } else {
             this.variable.setGroupId(group.getId());

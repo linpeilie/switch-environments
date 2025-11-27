@@ -13,10 +13,12 @@
 - 🗂️ **Group Management**: Organize environment variables into logical groups
 - ✅ **Group Activation Control**: Enable/disable entire groups
 - 📥 **Multi-format Import**: Import variables from .env, .properties, and .txt files
-- 🎨 **Clean UI**: Modern list and table interface
 - 💾 **Persistent Storage**: All settings are saved automatically
 - 🔧 **Easy Management**: Add, edit, and delete variables with simple dialogs
 - 🌍 **Global View**: Special first group shows all active variables
+- 📚 **Project Isolation**: data is isolated between different projects and does not affect each other
+
+<!-- Plugin description end -->
 
 ## Installation
 
@@ -37,6 +39,7 @@
   Download the [latest release](https://github.com/linpeilie/switch-environments/releases/latest) and install it manually using
   <kbd>Settings/Preferences</kbd> > <kbd>Plugins</kbd> > <kbd>⚙️</kbd> > <kbd>Install plugin from disk...</kbd>
 
+<!-- Plugin description -->
 ## Usage
 
 ### Accessing the Plugin
@@ -64,6 +67,8 @@
 3. **Delete Variable**: Select a variable and click "-" button
 4. Variables are automatically active when their group is active
 5. **Import**: Select a group (not built-in groups), then click "Import File" button
+
+<!-- Plugin description end -->
 
 ### Import Support
 
@@ -138,6 +143,8 @@ Or build and run directly:
 3. Make your changes
 4. Add tests if applicable
 5. Submit a pull request
+
+<!-- Plugin description -->
 
 ## License
 
